@@ -52,6 +52,26 @@ public class J2eeRequest extends ResponseBuffer {
 	return(new J2eeContext(cfg, req, resp));
     }
     
+    public SocketAddress remoteaddr() {
+	try {
+	    return(new InetSocketAddress(InetAddress.getByName(req.getRemoteAddr()), req.getRemotePort()));
+	} catch(UnknownHostException e) {
+	    /* req.getRemoteAddr should always be a valid IP address,
+	     * so this should never happen. */
+	    throw(new Error(e));
+	}
+    }
+    
+    public SocketAddress localaddr() {
+	try {
+	    return(new InetSocketAddress(InetAddress.getByName(req.getLocalAddr()), req.getLocalPort()));
+	} catch(UnknownHostException e) {
+	    /* req.getRemoteAddr should always be a valid IP address,
+	     * so this should never happen. */
+	    throw(new Error(e));
+	}
+    }
+    
     public URL url() {
 	return(url);
     }

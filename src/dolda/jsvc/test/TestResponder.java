@@ -20,6 +20,7 @@ public class TestResponder implements Responder {
 	out.println("Bardslen.");
 	out.println(req.inheaders());
 	out.println(req.ctx().starttime());
+	out.println(req.remoteaddr() + "<->" + req.localaddr());
 	out.println("</body>");
 	out.println("</html>");
 	out.flush();

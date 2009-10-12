@@ -2,6 +2,7 @@ package dolda.jsvc;
 
 import java.io.*;
 import java.net.URL;
+import java.net.SocketAddress;
 import java.util.Map;
 
 public interface Request {
@@ -22,4 +23,6 @@ public interface Request {
     /* Misc. */
     public Map<?, ?> props();
     public ServerContext ctx();
+    public SocketAddress remoteaddr();
+    public SocketAddress localaddr();
 }
