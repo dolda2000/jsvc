@@ -5,6 +5,6 @@ import dolda.jsvc.util.*;
 
 public class Bootstrap {
     public static Responder responder() {
-	return(new ErrorHandler(new TestResponder()));
+	return(new ErrorHandler(new Rehandler(new TestResponder())));
     }
 }

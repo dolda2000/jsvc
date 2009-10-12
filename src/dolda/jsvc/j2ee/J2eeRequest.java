@@ -118,6 +118,7 @@ public class J2eeRequest extends ResponseBuffer {
     }
     
     protected void backflush() {
+	resp.setStatus(respcode);
 	for(String key : outheaders().keySet()) {
 	    boolean first = true;
 	    for(String val : outheaders().values(key)) {

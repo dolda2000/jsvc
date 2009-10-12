@@ -6,8 +6,8 @@ import java.util.*;
 
 public abstract class ResponseBuffer implements ResettableRequest {
     private boolean flushed = false;
-    private int respcode = -1;
-    private String resptext = null;
+    protected int respcode = -1;
+    protected String resptext = null;
     private OutputStream out = null, wrapout = null;
     private MultiMap<String, String> headers;
     

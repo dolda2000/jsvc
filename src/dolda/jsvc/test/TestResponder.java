@@ -1,6 +1,7 @@
 package dolda.jsvc.test;
 
 import dolda.jsvc.*;
+import dolda.jsvc.util.*;
 import java.io.*;
 
 public class TestResponder implements Responder {
@@ -28,7 +29,7 @@ public class TestResponder implements Responder {
 	out.println("</html>");
 
 	if(req.path().equals("bard2"))
-	    throw(new RuntimeException("bard2"));
+	    throw(Restarts.redirectctx("/slen"));
 	out.flush();
     }
 }
