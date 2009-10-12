@@ -18,4 +18,8 @@ public class J2eeContext implements ServerContext {
     public String rootpath() {
 	return(req.getContextPath());
     }
+    
+    public long starttime() {
+	return((Long)cfg.getServletContext().getAttribute("jsvc.starttime"));
+    }
 }

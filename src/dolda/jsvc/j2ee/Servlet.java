@@ -48,6 +48,8 @@ public class Servlet extends HttpServlet {
 	} catch(InvocationTargetException e) {
 	    throw(new ServletException("JSvc bootstrapper failed", e));
 	}
+	ServletContext ctx = getServletContext();
+	ctx.setAttribute("jsvc.starttime", System.currentTimeMillis());
     }
     
     public void destroy() {
