@@ -13,6 +13,9 @@ public class TestResponder implements Responder {
 	    throw(new Error(e));
 	}
 
+	if(req.path().equals("bard1"))
+	    throw(new RuntimeException("bard1"));
+
 	out.println("<html>");
 	out.println("<head><title>Barda</title></head>");
 	out.println("<body>");
@@ -23,6 +26,9 @@ public class TestResponder implements Responder {
 	out.println(req.remoteaddr() + "<->" + req.localaddr());
 	out.println("</body>");
 	out.println("</html>");
+
+	if(req.path().equals("bard2"))
+	    throw(new RuntimeException("bard2"));
 	out.flush();
     }
 }
