@@ -119,7 +119,7 @@ public class Archive {
     }
 
     public void addjars(String[] jars) throws IOException {
-	jarprops(jars, "/jsvc.properties");
+	jarprops(jars, "jsvc.properties");
 	ZipOutputStream zip = zip();
 	for(String jar : jars) {
 	    zip.putNextEntry(new ZipEntry("WEB-INF/lib/" + basename(jar)));

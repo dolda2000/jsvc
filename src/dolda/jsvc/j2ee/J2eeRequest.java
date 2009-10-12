@@ -20,12 +20,6 @@ public class J2eeRequest extends ResponseBuffer {
 	this.cfg = cfg;
 	this.req = req;
 	this.resp = resp;
-	try {
-	    req.setCharacterEncoding("UTF-8");
-	    resp.setCharacterEncoding("UTF-8");
-	} catch(UnsupportedEncodingException e) {
-	    throw(new AssertionError(e));
-	}
 	{
 	    String host = req.getHeader("Host");
 	    if((host == null) || (host.length() < 1))
