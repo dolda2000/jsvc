@@ -4,16 +4,27 @@ import dolda.jsvc.*;
 import java.io.*;
 import java.util.*;
 
-public abstract class ResponseBuffer implements Request {
+public abstract class ResponseBuffer implements ResettableRequest {
     private boolean flushed = false;
     private int respcode = -1;
     private String resptext = null;
     private OutputStream out = null, wrapout = null;
-    private MultiMap<String, String> headers = new HeaderTreeMap() {
-	    protected void modified() {
-		ckflush();
-	    }
-    };
+    private MultiMap<String, String> headers;
+    
+    public ResponseBuffer() {
+	init();
+    }
+
+    private void init() {
+	ckflush();
+	wrapout = null;
+	respcode = -1;
+	headers = new HeaderTreeMap() {
+		protected void modified() {
+		    ckflush();
+		}
+	    };
+    }
     
     private void ckflush() {
 	if(flushed)
@@ -79,6 +90,14 @@ public abstract class ResponseBuffer implements Request {
     
     public MultiMap<String, String> outheaders() {
 	return(headers);
+    }
+    
+    public boolean canreset() {
+	return(!flushed);
+    }
+    
+    public void reset() {
+	init();
     }
     
     protected abstract void backflush();
