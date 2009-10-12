@@ -14,7 +14,7 @@ public class J2eeRequest extends ResponseBuffer {
     private HttpServletResponse resp;
     private String method, path;
     private URL url;
-    private Map<?, ?> props = new HashMap();
+    private Map<Object, Object> props = new HashMap<Object, Object>();
     
     public J2eeRequest(ServletConfig cfg, HttpServletRequest req, HttpServletResponse resp) {
 	this.cfg = cfg;
@@ -69,7 +69,7 @@ public class J2eeRequest extends ResponseBuffer {
 	    path = path.substring(1);
     }
     
-    public Map<?, ?> props() {
+    public Map<Object, Object> props() {
 	return(props);
     }
     

@@ -21,7 +21,7 @@ public interface Request {
     public MultiMap<String, String> outheaders();
     
     /* Misc. */
-    public Map<?, ?> props();
+    public Map<Object, Object> props();
     public ServerContext ctx();
     public SocketAddress remoteaddr();
     public SocketAddress localaddr();
