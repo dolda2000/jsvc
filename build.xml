@@ -12,19 +12,25 @@
     
    <target name="build-env">
       <mkdir dir="build" />
-      <mkdir dir="build/classes" />
+      <mkdir dir="build/bin" />
+      <mkdir dir="build/test-bin" />
     </target>
 
     <target name="jsvc" depends="build-env">
-      <javac srcdir="src" destdir="build/classes" debug="on">
+      <javac srcdir="src" destdir="build/bin" debug="on">
 	<!-- <classpath refid="classpath" /> -->
         <compilerarg value="-Xlint:unchecked" />
       </javac>
-      <copy todir="build/classes/dolda/jsvc/j2ee" file="etc/web.xml.template" />
+      <copy todir="build/bin/dolda/jsvc/j2ee" file="etc/web.xml.template" />
     </target>
     
     <target name="jsvc-jar" depends="build-env, jsvc">
-        <jar destfile="build/jsvc.jar" basedir="build/classes" />
+        <jar destfile="build/jsvc.jar" basedir="build/bin" />
+    </target>
+    
+    <target name="test-jar" depends="build-env, jsvc-jar">
+      <copy tofile="build/test-bin/jsvc.properties" file="etc/test.jsvc.properties" />
+      <jar destfile="build/jsvc-test.jar" basedir="build/test-bin" />
     </target>
     
     <target name="clean">
