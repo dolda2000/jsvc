@@ -21,4 +21,5 @@ public interface Request {
     
     /* Misc. */
     public Map<?, ?> props();
+    public ServerContext ctx();
 }

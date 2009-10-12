@@ -48,6 +48,10 @@ public class J2eeRequest extends ResponseBuffer {
 	return(props);
     }
     
+    public ServerContext ctx() {
+	return(new J2eeContext(cfg, req, resp));
+    }
+    
     public URL url() {
 	return(url);
     }

@@ -19,6 +19,10 @@ public class RequestThread extends Thread {
 	}
     }
     
+    public static ServerContext context() {
+	return(((RequestThread)Thread.currentThread()).req.ctx());
+    }
+    
     public static Request request() {
 	return(((RequestThread)Thread.currentThread()).req);
     }
