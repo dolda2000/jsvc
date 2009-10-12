@@ -7,11 +7,39 @@ import java.util.zip.*;
 import java.util.jar.*;
 
 public class Archive {
-    private static void usage(PrintStream out) {
-	out.println("usage: dolda.jsvc.j2ee.Archive [-h] [-p PROPFILE] [-n DISPLAY-NAME] WAR-FILE JAR-FILE...");
+    private Properties props = defprops();
+    private JarOutputStream zipout = null;
+    private final OutputStream realout;
+
+    public Archive(OutputStream out) {
+	this.realout = out;
+    }
+
+    private void initzip() throws IOException {
+	Manifest man = new Manifest();
+	man.getMainAttributes().put(new Attributes.Name("Manifest-Version"), "1.0");
+	man.getMainAttributes().put(new Attributes.Name("Created-By"), "jsvc");
+	JarOutputStream zip = new JarOutputStream(realout, man);
+	zip.putNextEntry(new ZipEntry("WEB-INF/"));
+	zip.putNextEntry(new ZipEntry("WEB-INF/lib/"));
+	this.zipout = zip;
+    }
+
+    private ZipOutputStream zip() throws IOException {
+	if(zipout == null)
+	    initzip();
+	return(this.zipout);
     }
     
-    private static void jarprops(String[] jars, String propres, Properties props) throws IOException {
+    public void putprop(String key, String val) {
+	props.put(key, val);
+    }
+
+    public void loadprops(InputStream in) throws IOException {
+	props.load(in);
+    }
+
+    public void jarprops(String[] jars, String propres) throws IOException {
 	URL[] urls = new URL[jars.length];
 	try {
 	    for(int i = 0; i < jars.length; i++)
@@ -60,12 +88,13 @@ public class Archive {
 	return(ln);
     }
 
-    private static void writewebxml(Properties props, OutputStream out) throws IOException {
+    private void writewebxml() throws IOException {
+	zip().putNextEntry(new ZipEntry("WEB-INF/web.xml"));
 	InputStream tmpl = Archive.class.getResourceAsStream("web.xml.template");
 	String cs = (String)props.get("jsvc.j2ee.webxml.coding");
 	try {
 	    BufferedReader r = new BufferedReader(new InputStreamReader(tmpl, "US-ASCII"));
-	    BufferedWriter w = new BufferedWriter(new OutputStreamWriter(out, cs));
+	    BufferedWriter w = new BufferedWriter(new OutputStreamWriter(zip(), cs));
 	    String ln;
 	    while((ln = r.readLine()) != null) {
 		w.write(subst(ln, props));
@@ -77,19 +106,23 @@ public class Archive {
 	}
     }
     
-    public static void makewar(String[] jars, Properties props, OutputStream out) throws IOException {
-	Manifest man = new Manifest();
-	man.getMainAttributes().put(new Attributes.Name("Manifest-Version"), "1.0");
-	man.getMainAttributes().put(new Attributes.Name("Created-By"), "jsvc");
-	JarOutputStream zip = new JarOutputStream(out, man);
-	zip.putNextEntry(new ZipEntry("WEB-INF/"));
-	zip.putNextEntry(new ZipEntry("WEB-INF/lib/"));
+    public void addcode(String name, InputStream in) throws IOException {
+	zip().putNextEntry(new ZipEntry("WEB-INF/classes/" + name));
+	cpstream(in, zip());
+    }
+
+    private static String basename(String fn) {
+	int p = fn.lastIndexOf('/');
+	if(p >= 0)
+	    return(fn.substring(p + 1));
+	return(fn);
+    }
+
+    public void addjars(String[] jars) throws IOException {
+	jarprops(jars, "/jsvc.properties");
+	ZipOutputStream zip = zip();
 	for(String jar : jars) {
-	    String bn = jar;
-	    int p = bn.lastIndexOf('/');
-	    if(p >= 0)
-		bn = bn.substring(p + 1);
-	    zip.putNextEntry(new ZipEntry("WEB-INF/lib/" + bn));
+	    zip.putNextEntry(new ZipEntry("WEB-INF/lib/" + basename(jar)));
 	    InputStream jarin = new FileInputStream(jar);
 	    try {
 		cpstream(jarin, zip);
@@ -97,13 +130,18 @@ public class Archive {
 		jarin.close();
 	    }
 	}
-	zip.putNextEntry(new ZipEntry("WEB-INF/web.xml"));
-	writewebxml(props, zip);
-	zip.finish();
     }
 
+    public void finish() throws IOException {
+	zip().finish();
+    }
+
+    private static void usage(PrintStream out) {
+	out.println("usage: dolda.jsvc.j2ee.Archive [-h] [-p PROPFILE] [-n DISPLAY-NAME] [(-c CODE-FILE)...] WAR-FILE JAR-FILE...");
+    }
+    
     public static void main(String[] args) throws IOException {
-	PosixArgs opt = PosixArgs.getopt(args, "hp:n:");
+	PosixArgs opt = PosixArgs.getopt(args, "hp:n:c:");
 	if(opt == null) {
 	    usage(System.err);
 	    System.exit(1);
@@ -115,33 +153,45 @@ public class Archive {
 	String war = opt.rest[0];
 	String[] jars = Arrays.copyOfRange(opt.rest, 1, opt.rest.length);
 	
-	Properties props = defprops();
-	jarprops(jars, "/jsvc.properties", props);
-	
-	for(char c : opt.parsed()) {
-	    switch(c) {
-	    case 'p':
-		{
-		    InputStream in = new FileInputStream(opt.arg);
-		    try {
-			props.load(in);
-		    } finally {
-			in.close();
-		    }
-		}
-		break;
-	    case 'n':
-		props.put("jsvc.j2ee.appname", opt.arg);
-		break;
-	    case 'h':
-		usage(System.out);
-		return;
-	    }
-	}
-	
 	OutputStream out = new FileOutputStream(war);
 	try {
-	    makewar(jars, props, out);
+	    Archive ar = new Archive(out);
+	
+	    for(char c : opt.parsed()) {
+		switch(c) {
+		case 'p':
+		    {
+			InputStream in = new FileInputStream(opt.arg);
+			try {
+			    ar.loadprops(in);
+			} finally {
+			    in.close();
+			}
+		    }
+		    break;
+		case 'n':
+		    ar.putprop("jsvc.j2ee.appname", opt.arg);
+		    break;
+		case 'c':
+		    {
+			InputStream in = new FileInputStream(opt.arg);
+			try {
+			    ar.addcode(basename(opt.arg), in);
+			} finally {
+			    in.close();
+			}
+		    }
+		    break;
+		case 'h':
+		    usage(System.out);
+		    return;
+		}
+	    }
+	    
+	    ar.addjars(jars);
+	    ar.writewebxml();
+	    
+	    ar.finish();
 	} finally {
 	    out.close();
 	}
