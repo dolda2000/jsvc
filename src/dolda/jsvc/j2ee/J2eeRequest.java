@@ -21,9 +21,34 @@ public class J2eeRequest extends ResponseBuffer {
 	this.req = req;
 	this.resp = resp;
 	{
+	    /* Ewwww, this is disgusting! */
+	    String scheme = req.getScheme();
+	    int port = -1;
 	    String host = req.getHeader("Host");
-	    if((host == null) || (host.length() < 1))
+	    if((host == null) || (host.length() < 1)) {
 		host = req.getLocalAddr();
+		port = req.getLocalPort();
+		if((port == 80) && scheme.equals("http"))
+		    port = -1;
+		else if((port == 443) && scheme.equals("https"))
+		    port = -1;
+	    } else {
+		int p;
+		if((host.charAt(0) == '[') && ((p = host.indexOf(']', 1)) > 1)) {
+		    String newhost = host.substring(1, p);
+		    if((p = host.indexOf(':', p + 1)) >= 0) {
+			try {
+			    port = Integer.parseInt(host.substring(p + 1));
+			} catch(NumberFormatException e) {}
+		    }
+		    host = newhost;
+		} else if((p = host.indexOf(':')) >= 0) {
+		    try {
+			port = Integer.parseInt(host.substring(p + 1));
+			host = host.substring(0, p);
+		    } catch(NumberFormatException e) {}
+		}
+	    }
 	    String pi = req.getPathInfo();
 	    if(pi == null)
 		pi = "";
@@ -33,7 +58,7 @@ public class J2eeRequest extends ResponseBuffer {
 	    else
 		q = "";
 	    try {
-		url = new URL(req.getScheme(), host, req.getServerPort(), req.getContextPath() + req.getServletPath() + pi + q);
+		url = new URL(scheme, host, port, req.getContextPath() + req.getServletPath() + pi + q);
 	    } catch(MalformedURLException e) {
 		throw(new Error(e));
 	    }
