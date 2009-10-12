@@ -1,6 +1,7 @@
 package dolda.jsvc.j2ee;
 
 import dolda.jsvc.*;
+import dolda.jsvc.util.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -16,7 +17,7 @@ public class J2eeContext implements ServerContext {
     }
     
     public String rootpath() {
-	return(req.getContextPath());
+	return("/" + Misc.stripslashes(req.getContextPath(), true, true));
     }
     
     public long starttime() {
