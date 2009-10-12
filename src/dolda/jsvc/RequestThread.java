@@ -12,6 +12,11 @@ public class RequestThread extends Thread {
     
     public void run() {
 	resp.respond(req);
+	try {
+	    req.output().close();
+	} catch(java.io.IOException e) {
+	    throw(new RuntimeException(e));
+	}
     }
     
     public static Request request() {

@@ -12,16 +12,14 @@ public class TestResponder implements Responder {
 	} catch(UnsupportedEncodingException e) {
 	    throw(new Error(e));
 	}
-	try {
-	    out.println("<html>");
-	    out.println("<head><title>Barda</title></head>");
-	    out.println("<body>");
-	    out.println("<h1>Barda</h1>");
-	    out.println("Bardslen.");
-	    out.println("</body>");
-	    out.println("</html>");
-	} finally {
-	    out.close();
-	}
+
+	out.println("<html>");
+	out.println("<head><title>Barda</title></head>");
+	out.println("<body>");
+	out.println("<h1>Barda</h1>");
+	out.println("Bardslen.");
+	out.println("</body>");
+	out.println("</html>");
+	out.flush();
     }
 }
