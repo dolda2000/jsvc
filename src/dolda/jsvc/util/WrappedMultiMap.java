@@ -230,4 +230,18 @@ public class WrappedMultiMap<K, V> implements MultiMap<K, V> {
     }
     
     protected void modified() {}
+    
+    public String toString() {
+	StringBuilder buf = new StringBuilder();
+	buf.append("{\n");
+	for(Map.Entry<K, V> e : entrySet()) {
+	    buf.append("\t");
+	    buf.append(e.getKey().toString());
+	    buf.append(" = \"");
+	    buf.append(e.getValue().toString());
+	    buf.append("\",\n");
+	}
+	buf.append("}\n");
+	return(buf.toString());
+    }
 }
