@@ -13,8 +13,6 @@
    <target name="build-env">
       <mkdir dir="build" />
       <mkdir dir="build/classes" />
-      <mkdir dir="build/webapp" />
-      <mkdir dir="build/webapp/WEB-INF/classes" />
     </target>
 
     <target name="jsvc" depends="build-env">
@@ -22,27 +20,13 @@
 	<!-- <classpath refid="classpath" /> -->
         <compilerarg value="-Xlint:unchecked" />
       </javac>
+      <copy todir="build/classes/dolda/jsvc/j2ee" file="etc/web.xml.template" />
     </target>
     
     <target name="jsvc-jar" depends="build-env, jsvc">
         <jar destfile="build/jsvc.jar" basedir="build/classes" />
     </target>
     
-    <target name="webapp" depends="build-env">
-       <mkdir dir="build/webapp/WEB-INF/lib" />
-       <copy file="build/jsvc.jar" tofile="build/webapp/WEB-INF/lib/jsvc.jar" />
-       <copy todir="build/webapp/WEB-INF/lib">
-	  <fileset dir="lib" />
-       </copy>
-    </target>
-
-    <target name="war" depends="build-env, jsvc-jar, webapp">
-       <war destfile="build/jsvc.war"
-	    basedir="build/webapp"
-	    webxml="www/web.xml"
-	    />
-    </target>
-
     <target name="clean">
        <delete dir="build" />
     </target>

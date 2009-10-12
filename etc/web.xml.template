@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="${jsvc.j2ee.webxml.coding}"?>
 
 <!DOCTYPE web-app
           PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
@@ -6,7 +6,7 @@
 
 <web-app>
 
-  <display-name>JSvc-wrapping</display-name>
+  <display-name>${jsvc.j2ee.appname}</display-name>
 
   <servlet>
     <servlet-name>jsvc</servlet-name>
