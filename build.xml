@@ -28,9 +28,16 @@
         <jar destfile="build/jsvc.jar" basedir="build/bin" />
     </target>
     
-    <target name="test-jar" depends="build-env, jsvc-jar">
+    <target name="test-war" depends="build-env, jsvc-jar">
+      <taskdef name="jsvc-war" classname="dolda.jsvc.j2ee.Archive$AntTask" classpath="build/jsvc.jar" />
       <copy tofile="build/test-bin/jsvc.properties" file="etc/test.jsvc.properties" />
       <jar destfile="build/jsvc-test.jar" basedir="build/test-bin" />
+      <jsvc-war destfile="build/jsvc-test.war">
+	<jars dir="build">
+	  <include name="jsvc.jar" />
+	  <include name="jsvc-test.jar" />
+	</jars>
+      </jsvc-war>
     </target>
     
     <target name="clean">
