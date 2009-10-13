@@ -14,6 +14,7 @@
       <mkdir dir="build" />
       <mkdir dir="build/bin" />
       <mkdir dir="build/test-bin" />
+      <mkdir dir="build/api" />
     </target>
 
     <target name="jsvc" depends="build-env">
@@ -28,6 +29,13 @@
         <jar destfile="build/jsvc.jar" basedir="build/bin" />
     </target>
     
+    <target name="javadoc" depends="jsvc-jar">
+      <javadoc packagenames="dolda.jsvc.*"
+	       sourcepath="src"
+	       destdir="build/api" />
+      <zip destfile="build/jsvc-api.zip" basedir="build/api" />
+    </target>
+
     <target name="test-war" depends="build-env, jsvc-jar">
       <taskdef name="jsvc-war" classname="dolda.jsvc.j2ee.Archive$AntTask" classpath="build/jsvc.jar" />
       <copy todir="build/test-bin/dolda/jsvc/test">
