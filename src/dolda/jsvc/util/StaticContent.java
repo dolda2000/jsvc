@@ -36,25 +36,10 @@ public class StaticContent implements Responder {
 	}
 	if(in == null)
 	    throw(Restarts.stdresponse(404));
-	String ims = req.inheaders().get("If-Modified-Since");
-	Date mtime = new Date((req.ctx().starttime() / 1000) * 1000);
-	if(ims != null) {
-	    Date d;
-	    try {
-		d = Http.parsedate(ims);
-	    } catch(java.text.ParseException e) {
-		throw(Restarts.stdresponse(400));
-	    }
-	    if(mtime.compareTo(d) <= 0) {
-		req.status(304);
-		req.outheaders().put("Content-Length", "0");
-		return;
-	    }
-	}
+	Cache.checkmtime(req, req.ctx().starttime());
 	try {
 	    try {
 		req.outheaders().put("Content-Type", mimetype);
-		req.outheaders().put("Last-Modified", Http.fmtdate(mtime));
 		Misc.cpstream(in, req.output());
 	    } finally {
 		in.close();
