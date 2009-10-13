@@ -5,10 +5,10 @@ import java.util.*;
 
 public class Multiplexer implements Responder {
     private Responder def;
-    private Collection<Sub> subs = new LinkedList<Sub>();
+    private Collection<Matcher> matchers = new LinkedList<Matcher>();
 
-    private static interface Sub {
-	boolean match(Request req);
+    public static interface Matcher {
+	public boolean match(Request req);
     }
     
     public Multiplexer(Responder def) {
@@ -24,7 +24,7 @@ public class Multiplexer implements Responder {
     }
     
     public void file(final String path, final Responder responder) {
-	subs.add(new Sub() {
+	add(new Matcher() {
 		public boolean match(Request req) {
 		    if(req.path().equals(path)) {
 			responder.respond(req);
@@ -37,7 +37,7 @@ public class Multiplexer implements Responder {
 
     public void dir(String path, final Responder responder) {
 	final String fp = Misc.stripslashes(path, true, true);
-	subs.add(new Sub() {
+	add(new Matcher() {
 		public boolean match(Request req) {
 		    if(req.path().equals(fp)) {
 			throw(Restarts.redirect(fp + "/"));
@@ -50,9 +50,13 @@ public class Multiplexer implements Responder {
 	    });
     }
     
+    public void add(Matcher m) {
+	matchers.add(m);
+    }
+    
     public void respond(Request req) {
-	for(Sub s : subs) {
-	    if(s.match(req))
+	for(Matcher m : matchers) {
+	    if(m.match(req))
 		return;
 	}
 	def.respond(req);

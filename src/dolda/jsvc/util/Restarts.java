@@ -77,4 +77,11 @@ public class Restarts {
     public static RequestRestart stdresponse(int code) {
 	return(stdresponse(code, "An error occurred", Misc.statustext(code)));
     }
+    
+    public static RequestRestart done() {
+	return(new RequestRestart() {
+		public void respond(Request req) {
+		}
+	    });
+    }
 }
