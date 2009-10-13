@@ -7,7 +7,7 @@ import java.util.logging.*;
 
 public class ErrorHandler implements Responder {
     private Responder next;
-    private static Logger logger = Logger.getLogger("jsvc.error");
+    private static Logger logger = Logger.getLogger("dolda.jsvc.context");
     
     public ErrorHandler(Responder next) {
 	this.next = next;

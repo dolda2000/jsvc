@@ -8,16 +8,9 @@ import javax.servlet.http.*;
 import javax.servlet.*;
 
 public class Servlet extends HttpServlet {
-    private Responder root;
-    private ThreadGroup workers;
-    private long reqs = 0;
+    private ThreadContext tg;
 
     public void init() throws ServletException {
-	workers = new ThreadGroup("JSvc worker threads") {
-		public void uncaughtException(Thread t, Throwable e) {
-		    log("Worker thread terminated with an uncaught exception", e);
-		}
-	    };
 	Properties sprop = new Properties();
 	try {
 	    InputStream pi = Servlet.class.getClassLoader().getResourceAsStream("jsvc.properties");
@@ -32,30 +25,19 @@ public class Servlet extends HttpServlet {
 	String clnm = (String)sprop.get("jsvc.bootstrap");
 	if(clnm == null)
 	    throw(new ServletException("No JSvc bootstrapper specified"));
+	Class<?> bc;
 	try {
-	    Class<?> rc = Class.forName(clnm);
-	    Method cm = rc.getMethod("responder");
-	    Object resp = cm.invoke(null);
-	    if(!(resp instanceof Responder))
-		throw(new ServletException("JSvc bootstrapper did not return a responder"));
-	    root = (Responder)resp;
+	    bc = Class.forName(clnm);
 	} catch(ClassNotFoundException e) {
 	    throw(new ServletException("Invalid JSvc bootstrapper specified", e));
-	} catch(NoSuchMethodException e) {
-	    throw(new ServletException("Invalid JSvc bootstrapper specified", e));
-	} catch(IllegalAccessException e) {
-	    throw(new ServletException("Invalid JSvc bootstrapper specified", e));
-	} catch(InvocationTargetException e) {
-	    throw(new ServletException("JSvc bootstrapper failed", e));
 	}
+	tg = new ThreadContext(null, "JSvc service", bc);
 	ServletContext ctx = getServletContext();
 	ctx.setAttribute("jsvc.starttime", System.currentTimeMillis());
     }
     
     public void destroy() {
-	workers.interrupt();
-	if(root instanceof ContextResponder)
-	    ((ContextResponder)root).destroy();
+	tg.shutdown();
     }
     
     public void service(HttpServletRequest req, HttpServletResponse resp) {
@@ -65,9 +47,8 @@ public class Servlet extends HttpServlet {
 	} catch(UnsupportedEncodingException e) {
 	    throw(new Error(e));
 	}
-	long mynum = reqs++;
 	Request rr = new J2eeRequest(getServletConfig(), req, resp);
-	RequestThread w = new RequestThread(root, rr, workers, "Worker thread " + mynum);
+	RequestThread w = tg.respond(rr);
 	w.start();
 	try {
 	    w.join();
