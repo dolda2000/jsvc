@@ -16,18 +16,9 @@ public class Multiplexer implements Responder {
     }
     
     public Multiplexer() {
-	this(new SimpleWriter("html") {
-		public void respond(Request req, java.io.PrintWriter out) {
-		    req.status(404);
-		    out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		    out.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">");
-		    out.println("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en-US\">");
-		    out.println("<head><title>Resource not found</title></head>");
-		    out.println("<body>");
-		    out.println("<h1>Resource not found</h1>");
-		    out.println("The resource you requested could not be found on this server.");
-		    out.println("</body>");
-		    out.println("</html>");
+	this(new Responder() {
+		public void respond(Request req) {
+		    throw(Restarts.stdresponse(404, "Resource not found", "The resource you requested could not be found on this server."));
 		}
 	    });
     }

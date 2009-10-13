@@ -1,6 +1,8 @@
 package dolda.jsvc.util;
 
+import dolda.jsvc.*;
 import java.util.*;
+import java.io.*;
 
 public class Misc {
     private static Map<Integer, String> stext = new HashMap<Integer, String>();
@@ -11,6 +13,7 @@ public class Misc {
 	stext.put(301, "Permanently Moved");
 	stext.put(302, "Temporarily Moved");
 	stext.put(303, "See Other");
+	stext.put(304, "Not Modified");
 	stext.put(400, "Bad Request");
 	stext.put(401, "Authentication Required");
 	stext.put(403, "Access Forbidden");
@@ -31,5 +34,22 @@ public class Misc {
 	while(beg && (p.length() > 0) && (p.charAt(0) == '/'))
 	    p = p.substring(1);
 	return(p);
+    }
+
+    public static void cpstream(InputStream in, OutputStream out) throws IOException {
+        byte[] buf = new byte[4096];
+        while(true) {
+	    int ret = in.read(buf, 0, buf.length);
+            if(ret < 0)
+                return;
+	    out.write(buf, 0, ret);
+        }
+    }
+    
+    public static Responder stdroot(Responder root) {
+	Responder ret = root;
+	ret = new Rehandler(ret);
+	ret = new ErrorHandler(ret);
+	return(ret);
     }
 }

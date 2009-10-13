@@ -4,32 +4,16 @@ import dolda.jsvc.*;
 import dolda.jsvc.util.*;
 import java.io.*;
 
-public class TestResponder implements Responder {
-    public void respond(Request req) {
-	req.outheaders().put("Content-Type", "text/html; charset=utf-8");
-	PrintWriter out;
-	try {
-	    out = new PrintWriter(new OutputStreamWriter(req.output(), "UTF-8"));
-	} catch(UnsupportedEncodingException e) {
-	    throw(new Error(e));
-	}
-
-	if(req.path().equals("bard1"))
-	    throw(new RuntimeException("bard1"));
-
-	out.println("<html>");
-	out.println("<head><title>Barda</title></head>");
-	out.println("<body>");
-	out.println("<h1>Barda</h1>");
-	out.println("Bardslen.");
+public class TestResponder extends SimpleWriter {
+    public TestResponder() {
+	super("plain");
+    }
+    
+    public void respond(Request req, PrintWriter out) {
+	out.println(req.url());
+	out.println(req.path());
 	out.println(req.inheaders());
 	out.println(req.ctx().starttime());
 	out.println(req.remoteaddr() + "<->" + req.localaddr());
-	out.println("</body>");
-	out.println("</html>");
-
-	if(req.path().equals("bard2"))
-	    throw(Restarts.redirectctx("/slen"));
-	out.flush();
     }
 }

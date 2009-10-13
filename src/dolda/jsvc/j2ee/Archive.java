@@ -1,5 +1,6 @@
 package dolda.jsvc.j2ee;
 
+import dolda.jsvc.util.*;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -64,16 +65,6 @@ public class Archive {
 	return(props);
     }
 
-    private static void cpstream(InputStream in, OutputStream out) throws IOException {
-        byte[] buf = new byte[4096];
-        while(true) {
-	    int ret = in.read(buf, 0, buf.length);
-            if(ret < 0)
-                return;
-	    out.write(buf, 0, ret);
-        }
-    }
-
     private static class MissingPropException extends RuntimeException {
 	public final String prop;
 	
@@ -117,7 +108,7 @@ public class Archive {
     
     public void addcode(String name, InputStream in) throws IOException {
 	zip().putNextEntry(new ZipEntry("WEB-INF/classes/" + name));
-	cpstream(in, zip());
+	Misc.cpstream(in, zip());
     }
 
     public void addjars(File[] jars) throws IOException {
@@ -127,7 +118,7 @@ public class Archive {
 	    zip.putNextEntry(new ZipEntry("WEB-INF/lib/" + jar.getName()));
 	    InputStream jarin = new FileInputStream(jar);
 	    try {
-		cpstream(jarin, zip);
+		Misc.cpstream(jarin, zip);
 	    } finally {
 		jarin.close();
 	    }
