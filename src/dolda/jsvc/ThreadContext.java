@@ -24,9 +24,25 @@ public class ThreadContext extends ThreadGroup {
     }
     
     public void shutdown() {
-	interrupt();
 	if(root instanceof ContextResponder)
 	    ((ContextResponder)root).destroy();
+	try {
+	    long last = 0;
+	    while(true) {
+		long now = System.currentTimeMillis();
+		if(now - last > 10000) {
+		    interrupt();
+		    last = now;
+		}
+		Thread[] th = new Thread[1];
+		if(enumerate(th) < 1)
+		    break;
+		th[0].join(10000);
+	    }
+	} catch(InterruptedException e) {
+	    logger.log(Level.WARNING, "Interrupted while trying to shut down all service threads. Some may remain.", e);
+	}
+	destroy();
     }
     
     public RequestThread respond(Request req) {
