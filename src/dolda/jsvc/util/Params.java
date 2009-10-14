@@ -17,25 +17,23 @@ public class Params {
 	}
     }
     
-    public static MultiMap<String, String> urlparams(String q) {
+    public static MultiMap<String, String> urlparams(Reader in) throws IOException {
 	try {
 	    MultiMap<String, String> ret = new WrappedMultiMap<String, String>(new TreeMap<String, Collection<String>>());
 	    String st = "key";
 	    String key = null; /* Java is stupid. */
 	    MixedBuffer buf = new MixedBuffer();
-	    int i = 0;
 	    while(true) {
-		int c = (i >= q.length())?-1:(q.charAt(i++));
+		int c = in.read();
 		if(st == "key") {
 		    if(c == '%') {
-			if(q.length() - i < 2)
-			    throw(new EncodingException("Invalid character escape"));
 			try {
-			    buf.append((byte)((Misc.hex2int(q.charAt(i)) << 4) | Misc.hex2int(q.charAt(i + 1))));
+			    int d1 = in.read();
+			    int d2 = in.read();
+			    buf.append((byte)((Misc.hex2int((char)d1) << 4) | Misc.hex2int((char)d2)));
 			} catch(NumberFormatException e) {
 			    throw(new EncodingException("Invalid character escape"));
 			}
-			i += 2;
 		    } else if(c == '=') {
 			key = buf.convert();
 			buf = new MixedBuffer();
@@ -55,14 +53,13 @@ public class Params {
 		    }
 		} else if(st == "val") {
 		    if(c == '%') {
-			if(q.length() - i < 2)
-			    throw(new EncodingException("Invalid character escape"));
 			try {
-			    buf.append((byte)((Misc.hex2int(q.charAt(i)) << 4) | Misc.hex2int(q.charAt(i + 1))));
+			    int d1 = in.read();
+			    int d2 = in.read();
+			    buf.append((byte)((Misc.hex2int((char)d1) << 4) | Misc.hex2int((char)d2)));
 			} catch(NumberFormatException e) {
 			    throw(new EncodingException("Invalid character escape"));
 			}
-			i += 2;
 		    } else if((c == '&') || (c == -1)) {
 			ret.add(key, buf.convert());
 			buf = new MixedBuffer();
@@ -77,6 +74,16 @@ public class Params {
 	    return(ret);
 	} catch(CharacterCodingException e) {
 	    throw(new EncodingException("Escaped parameter text is not proper UTF-8"));
+	}
+    }
+
+    public static MultiMap<String, String> urlparams(String q) {
+	try {
+	    return(urlparams(new StringReader(q)));
+	} catch(IOException e) {
+	    /* This will, of course, never ever once happen, but do
+	     * you think Javac cares? */
+	    throw(new Error(e));
 	}
     }
 
@@ -108,30 +115,17 @@ public class Params {
     public static MultiMap<String, String> postparams(Request req) {
 	if(req.method() != "POST")
 	    return(null);
-	String clens = req.inheaders().get("Content-Length");
-	if(clens == null)
-	    return(null);
-	int clen;
-	try {
-	    clen = Integer.parseInt(clens);
-	} catch(NumberFormatException e) {
-	    return(null);
-	}
 	String ctype = req.inheaders().get("Content-Type");
 	if(ctype == null)
 	    return(null);
 	ctype = ctype.toLowerCase();
 	if(ctype.equals("application/x-www-form-urlencoded")) {
-	    if(clen > (1 << 20)) /* Just to be safe */
-		return(null);
 	    byte[] data;
 	    try {
-		data = Misc.readall(req.input());
+		return(urlparams(new InputStreamReader(req.input(), "UTF-8")));
 	    } catch(IOException e) {
 		return(null);
 	    }
-	    String dec = new String(data, Misc.utf8);
-	    return(urlparams(dec));
 	}
 	return(null);
     }
