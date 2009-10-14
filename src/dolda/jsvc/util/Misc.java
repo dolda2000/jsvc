@@ -5,6 +5,7 @@ import java.util.*;
 import java.io.*;
 
 public class Misc {
+    public static final java.nio.charset.Charset utf8 = java.nio.charset.Charset.forName("UTF-8");
     private static Map<Integer, String> stext = new HashMap<Integer, String>();
     
     static {
@@ -51,5 +52,55 @@ public class Misc {
 	ret = new Rehandler(ret);
 	ret = new ErrorHandler(ret);
 	return(ret);
+    }
+    
+    public static int hex2int(char digit) {
+	if((digit >= '0') && (digit <= '9'))
+	    return(digit - '0');
+	if((digit >= 'a') && (digit <= 'f'))
+	    return(digit - 'a' + 10);
+	if((digit >= 'A') && (digit <= 'F'))
+	    return(digit - 'A' + 10);
+	throw(new NumberFormatException("Invalid hex digit " + digit));
+    }
+    
+    public static char int2hex(int nibble, boolean upper) {
+	if((nibble >= 0) && (nibble <= 9))
+	    return((char)('0' + nibble));
+	if((nibble >= 10) && (nibble <= 15))
+	    return((char)((upper?'A':'a') + nibble - 10));
+	throw(new NumberFormatException("Invalid hex nibble " + nibble));
+    }
+
+    public static String htmlq(String in) {
+	StringBuilder buf = new StringBuilder();
+	for(int i = 0; i < in.length(); i++) {
+	    char c = in.charAt(i);
+	    if(c == '&')
+		buf.append("&amp;");
+	    else if(c == '<')
+		buf.append("&lt;");
+	    else if(c == '>')
+		buf.append("&gt;");
+	    else
+		buf.append(c);
+	}
+	return(buf.toString());
+    }
+    
+    public static String urlq(String in) {
+	byte[] bytes = in.getBytes(utf8);
+	StringBuilder buf = new StringBuilder();
+	for(int i = 0; i < bytes.length; i++) {
+	    byte b = bytes[i];
+	    if((b < 32) || (b == ' ') || (b == '&') || (b == '?') || (b == '/') || (b == '=') || (b == '#') || (b == '%') || (b == '+') || (b >= 128)) {
+		buf.append('%');
+		buf.append(int2hex((b & 0xf0) >> 4, true));
+		buf.append(int2hex(b & 0x0f, true));
+	    } else {
+		buf.append((char)b);
+	    }
+	}
+	return(buf.toString());
     }
 }
