@@ -81,7 +81,10 @@ public class Params {
     }
 
     public static MultiMap<String, String> urlparams(URL url) {
-	return(urlparams(url.getQuery()));
+	String q = url.getQuery();
+	if(q == null)
+	    q = "";
+	return(urlparams(q));
     }
 
     public static MultiMap<String, String> urlparams(Request req) {
@@ -100,5 +103,36 @@ public class Params {
 	    f = false;
 	}
 	return(buf.toString());
+    }
+    
+    public static MultiMap<String, String> postparams(Request req) {
+	if(req.method() != "POST")
+	    return(null);
+	String clens = req.inheaders().get("Content-Length");
+	if(clens == null)
+	    return(null);
+	int clen;
+	try {
+	    clen = Integer.parseInt(clens);
+	} catch(NumberFormatException e) {
+	    return(null);
+	}
+	String ctype = req.inheaders().get("Content-Type");
+	if(ctype == null)
+	    return(null);
+	ctype = ctype.toLowerCase();
+	if(ctype.equals("application/x-www-form-urlencoded")) {
+	    if(clen > (1 << 20)) /* Just to be safe */
+		return(null);
+	    byte[] data;
+	    try {
+		data = Misc.readall(req.input());
+	    } catch(IOException e) {
+		return(null);
+	    }
+	    String dec = new String(data, Misc.utf8);
+	    return(urlparams(dec));
+	}
+	return(null);
     }
 }

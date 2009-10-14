@@ -14,6 +14,7 @@ public class J2eeRequest extends ResponseBuffer {
     private HttpServletResponse resp;
     private String method, path;
     private URL url;
+    private MultiMap<String, String> params = null;
     private Map<Object, Object> props = new HashMap<Object, Object>();
     
     public J2eeRequest(ServletConfig cfg, HttpServletRequest req, HttpServletResponse resp) {
@@ -139,7 +140,15 @@ public class J2eeRequest extends ResponseBuffer {
     }
     
     public MultiMap<String, String> params() {
-	return(null);
+	if(params == null) {
+	    params = Params.urlparams(this);
+	    if(method == "POST") {
+		MultiMap<String, String> pp = Params.postparams(this);
+		if(pp != null)
+		    params.putAll(pp);
+	    }
+	}
+	return(params);
     }
     
     protected void backflush() {

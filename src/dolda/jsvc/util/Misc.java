@@ -37,6 +37,25 @@ public class Misc {
 	return(p);
     }
 
+    static byte[] readall(InputStream in) throws IOException {
+	byte[] buf = new byte[4096];
+	int off = 0;
+	while(true) {
+	    if(off == buf.length) {
+		byte[] n = new byte[buf.length * 2];
+		System.arraycopy(buf, 0, n, 0, buf.length);
+		buf = n;
+	    }
+	    int ret = in.read(buf, off, buf.length - off);
+	    if(ret < 0) {
+		byte[] n = new byte[off];
+		System.arraycopy(buf, 0, n, 0, off);
+		return(n);
+	    }
+	    off += ret;
+	}
+    }
+    
     public static void cpstream(InputStream in, OutputStream out) throws IOException {
         byte[] buf = new byte[4096];
         while(true) {
