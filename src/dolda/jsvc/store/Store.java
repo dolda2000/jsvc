@@ -12,31 +12,10 @@ public class Store {
     private final Package pkg;
     private final File base;
     
-    private Store(Package pkg, CodeSource src, File root) {
+    private Store(Package pkg, File root) {
 	this.pkg = pkg;
 	String nm = pkg.getName();
 	File base = root;
-	if(src != null) {
-	    try {
-		MessageDigest fdig = MessageDigest.getInstance("MD5");
-		for(Certificate cert : src.getCertificates()) {
-		    MessageDigest cdig = MessageDigest.getInstance("MD5");
-		    cdig.update(cert.getEncoded());
-		    fdig.update(cdig.digest());
-		}
-		byte[] fp = fdig.digest();
-		StringBuilder buf = new StringBuilder();
-		for(byte b : fp) {
-		    buf.append(Misc.int2hex((b & 0xf0) >> 4, true));
-		    buf.append(Misc.int2hex(b & 0x0f, true));
-		}
-		base = new File(base, buf.toString());
-	    } catch(NoSuchAlgorithmException e) {
-		throw(new Error(e));
-	    } catch(java.security.cert.CertificateEncodingException e) {
-		throw(new Error(e));
-	    }
-	}
 	int p = 0;
 	int p2;
 	while((p2 = nm.indexOf('.', p)) >= 0) {
@@ -63,20 +42,7 @@ public class Store {
 	synchronized(interned) {
 	    s = interned.get(pkg);
 	    if(s == null) {
-		ProtectionDomain dom;
-		dom = AccessController.doPrivileged(new PrivilegedAction<ProtectionDomain>() {
-			public ProtectionDomain run() {
-			    try {
-				return(cl.getProtectionDomain());
-			    } catch(SecurityException e) {
-				return(null);
-			    }
-			}
-		    });
-		if(dom != null)
-		    s = new Store(pkg, dom.getCodeSource(), root);
-		else
-		    s = new Store(pkg, null, root);
+		s = new Store(pkg, root);
 		interned.put(pkg, s);
 	    }
 	}
