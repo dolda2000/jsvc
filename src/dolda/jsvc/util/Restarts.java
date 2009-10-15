@@ -34,11 +34,10 @@ public class Restarts {
 		public void respond(Request req) {
 		    req.status(303);
 		    URL url;
-		    String rel = req.ctx().rootpath() + "/" + Misc.stripslashes(path, true, false);
 		    try {
-			url = new URL(req.url(), rel);
+			url = new URL(req.rooturl(), Misc.stripslashes(path, true, false));
 		    } catch(MalformedURLException e) {
-			throw(new RuntimeException("Bad relative URL: + " + rel, e));
+			throw(new RuntimeException("Bad relative URL: + " + path, e));
 		    }
 		    req.outheaders().put("Location", url.toString());
 		}

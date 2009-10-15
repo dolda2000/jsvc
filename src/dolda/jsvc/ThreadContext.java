@@ -7,10 +7,12 @@ public class ThreadContext extends ThreadGroup {
     private Logger logger = Logger.getLogger("dolda.jsvc.context");
     private ThreadGroup workers;
     private long reqs = 0;
+    private final ServerContext ctx;
     public final Responder root;
     
-    public ThreadContext(ThreadGroup parent, String name, Class<?> bootclass) {
+    public ThreadContext(ThreadGroup parent, String name, ServerContext ctx, Class<?> bootclass) {
 	super((parent == null)?(Thread.currentThread().getThreadGroup()):parent, name);
+	this.ctx = ctx;
 	workers = new ThreadGroup(this, "Worker threads") {
 		public void uncaughtException(Thread t, Throwable e) {
 		    logger.log(Level.SEVERE, "Worker thread terminated with an uncaught exception", e);
@@ -21,6 +23,10 @@ public class ThreadContext extends ThreadGroup {
     
     public void uncaughtException(Thread t, Throwable e) {
 	logger.log(Level.SEVERE, "Service thread " + t.toString() + " terminated with an uncaught exception", e);
+    }
+    
+    public ServerContext server() {
+	return(ctx);
     }
     
     public void shutdown() {
@@ -87,5 +93,13 @@ public class ThreadContext extends ThreadGroup {
 	    throw(new NullPointerException("No responder returned in spite of no error having happened."));
 	}
 	return(res[0]);
+    }
+
+    public static ThreadContext current() {
+	for(ThreadGroup tg = Thread.currentThread().getThreadGroup(); tg != null; tg = tg.getParent()) {
+	    if(tg instanceof ThreadContext)
+		return((ThreadContext)tg);
+	}
+	return(null);
     }
 }

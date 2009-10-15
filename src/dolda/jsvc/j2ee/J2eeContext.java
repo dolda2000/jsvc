@@ -7,20 +7,14 @@ import javax.servlet.http.*;
 
 public class J2eeContext implements ServerContext {
     private ServletConfig cfg;
-    private HttpServletRequest req;
-    private HttpServletResponse resp;
+    private long ctime;
     
-    J2eeContext(ServletConfig cfg, HttpServletRequest req, HttpServletResponse resp) {
+    J2eeContext(ServletConfig cfg) {
 	this.cfg = cfg;
-	this.req = req;
-	this.resp = resp;
-    }
-    
-    public String rootpath() {
-	return("/" + Misc.stripslashes(req.getContextPath(), true, true));
+	this.ctime = System.currentTimeMillis();
     }
     
     public long starttime() {
-	return((Long)cfg.getServletContext().getAttribute("jsvc.starttime"));
+	return(ctime);
     }
 }

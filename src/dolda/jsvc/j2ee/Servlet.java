@@ -10,7 +10,7 @@ import javax.servlet.*;
 public class Servlet extends HttpServlet {
     private ThreadContext tg;
 
-    public void init() throws ServletException {
+    public void init(ServletConfig cfg) throws ServletException {
 	Properties sprop = new Properties();
 	try {
 	    InputStream pi = Servlet.class.getClassLoader().getResourceAsStream("jsvc.properties");
@@ -31,9 +31,7 @@ public class Servlet extends HttpServlet {
 	} catch(ClassNotFoundException e) {
 	    throw(new ServletException("Invalid JSvc bootstrapper specified", e));
 	}
-	tg = new ThreadContext(null, "JSvc service", bc);
-	ServletContext ctx = getServletContext();
-	ctx.setAttribute("jsvc.starttime", System.currentTimeMillis());
+	tg = new ThreadContext(null, "JSvc service", new J2eeContext(cfg), bc);
     }
     
     public void destroy() {

@@ -13,7 +13,7 @@ public class J2eeRequest extends ResponseBuffer {
     private HttpServletRequest req;
     private HttpServletResponse resp;
     private String method, path;
-    private URL url;
+    private URL url, context;
     private MultiMap<String, String> params = null;
     private Map<Object, Object> props = new HashMap<Object, Object>();
     
@@ -60,6 +60,7 @@ public class J2eeRequest extends ResponseBuffer {
 		q = "";
 	    try {
 		url = new URL(scheme, host, port, req.getContextPath() + req.getServletPath() + pi + q);
+		context = new URL(scheme, host, port, req.getContextPath());
 	    } catch(MalformedURLException e) {
 		throw(new Error(e));
 	    }
@@ -72,10 +73,6 @@ public class J2eeRequest extends ResponseBuffer {
     
     public Map<Object, Object> props() {
 	return(props);
-    }
-    
-    public ServerContext ctx() {
-	return(new J2eeContext(cfg, req, resp));
     }
     
     public SocketAddress remoteaddr() {
@@ -100,6 +97,14 @@ public class J2eeRequest extends ResponseBuffer {
     
     public URL url() {
 	return(url);
+    }
+    
+    public URL rooturl() {
+	return(context);
+    }
+    
+    public ServerContext ctx() {
+	return(ThreadContext.current().server());
     }
     
     public String method() {

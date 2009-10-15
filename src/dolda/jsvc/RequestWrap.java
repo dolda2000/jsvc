@@ -13,6 +13,7 @@ public class RequestWrap implements Request {
     }
     
     public URL url() {return(bk.url());}
+    public URL rooturl() {return(bk.rooturl());}
     public String method() {return(bk.method());}
     public String path() {return(bk.path());}
     public InputStream input() {return(bk.input());}

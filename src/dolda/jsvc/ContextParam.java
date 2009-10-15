@@ -22,7 +22,7 @@ public class ContextParam<T> {
 	Thread th = Thread.currentThread();
 	if(perthr.containsKey(th))
 	    return(perthr.get(th));
-	ThreadContext ctx = getctx();
+	ThreadContext ctx = ThreadContext.current();
 	if(perctx.containsKey(ctx))
 	    return(perctx.get(ctx));
 	if(!bound)
@@ -31,16 +31,8 @@ public class ContextParam<T> {
     }
 	
     public synchronized T ctxset(T val) {
-	ThreadContext ctx = getctx();
+	ThreadContext ctx = ThreadContext.current();
 	return(perctx.put(ctx, val));
-    }
-    
-    private static ThreadContext getctx() {
-	for(ThreadGroup tg = Thread.currentThread().getThreadGroup(); tg != null; tg = tg.getParent()) {
-	    if(tg instanceof ThreadContext)
-		return((ThreadContext)tg);
-	}
-	return(null);
     }
     
     public static Responder let(final Responder next, Object... params) {

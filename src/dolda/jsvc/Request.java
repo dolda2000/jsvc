@@ -8,6 +8,7 @@ import java.util.Map;
 public interface Request {
     /* Input */
     public URL url();
+    public URL rooturl();
     public String method();
     public String path();
     public InputStream input();
