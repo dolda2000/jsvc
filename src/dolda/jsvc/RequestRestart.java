@@ -18,4 +18,12 @@ public abstract class RequestRestart extends RuntimeException implements Respond
     }
     
     public abstract void respond(Request req);
+    
+    public RequestRestart wrap(final Responder resp) {
+	return(new RequestRestart() {
+		public void respond(Request req) {
+		    resp.respond(req);
+		}
+	    });
+    }
 }
