@@ -31,7 +31,7 @@ public class Servlet extends HttpServlet {
 	} catch(ClassNotFoundException e) {
 	    throw(new ServletException("Invalid JSvc bootstrapper specified", e));
 	}
-	tg = new ThreadContext(null, "JSvc service", new J2eeContext(cfg), bc);
+	tg = new ThreadContext(null, "JSvc service", J2eeContext.create(cfg), bc);
     }
     
     public void destroy() {
