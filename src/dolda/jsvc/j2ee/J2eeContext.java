@@ -53,8 +53,8 @@ public class J2eeContext implements ServerContext {
 	return(ctime);
     }
     
-    public Properties config() {
-	return(config);
+    public String config(String key) {
+	return((String)config.get(key));
     }
     
     public ServletConfig j2eeconfig() {
