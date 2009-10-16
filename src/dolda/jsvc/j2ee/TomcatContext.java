@@ -55,7 +55,7 @@ public class TomcatContext extends J2eeContext {
 	    String basename = System.getProperty("catalina.base");
 	    base = new File(basename);
 	} catch(SecurityException e) {
-	    logger.log(Level.WARNING, "no permssions to fetch Tomcat base directory while reading configuration", e);
+	    logger.log(Level.WARNING, "no permissions to fetch Tomcat base directory while reading configuration", e);
 	    return;
 	}
 	config.put("jsvc.storage", "file:" + new File(new File(base, "work"), "jsvc").getPath());
