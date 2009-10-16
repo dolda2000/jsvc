@@ -23,7 +23,6 @@ public class RequestWrap implements Request {
     public void status(int code) {bk.status(code);}
     public void status(int code, String message) {bk.status(code, message);}
     public MultiMap<String, String> outheaders() {return(bk.outheaders());}
-    public Map<Object, Object> props() {return(bk.props());}
     public ServerContext ctx() {return(bk.ctx());}
     public SocketAddress remoteaddr() {return(bk.remoteaddr());}
     public SocketAddress localaddr() {return(bk.localaddr());}
