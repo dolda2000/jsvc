@@ -77,7 +77,11 @@ public class J2eeRequest extends ResponseBuffer {
     
     public SocketAddress remoteaddr() {
 	try {
-	    return(new InetSocketAddress(InetAddress.getByName(req.getRemoteAddr()), req.getRemotePort()));
+	    /* Apparently getRemotePort returns -1 when running on Tomcat over AJP. */
+	    int port = req.getRemotePort();
+	    if(port < 0)
+		port = 0;
+	    return(new InetSocketAddress(InetAddress.getByName(req.getRemoteAddr()), port));
 	} catch(UnknownHostException e) {
 	    /* req.getRemoteAddr should always be a valid IP address,
 	     * so this should never happen. */
