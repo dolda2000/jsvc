@@ -86,9 +86,12 @@ public class ThreadContext extends ThreadGroup {
 	    boot.interrupt();
 	    Thread.currentThread().interrupt();
 	}
-	if(err[0] != null)
+	if(err[0] != null) {
+	    destroy();
 	    throw(new RuntimeException(err[0]));
+	}
 	if(res[0] == null) {
+	    destroy();
 	    logger.log(Level.SEVERE, "No responder returned in spite of no error having happened.");
 	    throw(new NullPointerException("No responder returned in spite of no error having happened."));
 	}

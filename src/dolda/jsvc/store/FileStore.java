@@ -38,8 +38,10 @@ class FileStore extends Store {
 	this.base = new java.io.File(base, nm.substring(p));
 	AccessController.doPrivileged(new PrivilegedAction<Object>() {
 		public Object run() {
-		    if(!FileStore.this.base.mkdirs())
-			throw(new RuntimeException("Could not create store directory (Java won't tell me why)"));
+		    if(!FileStore.this.base.exists()) {
+			if(!FileStore.this.base.mkdirs())
+			    throw(new RuntimeException("Could not create store directory (Java won't tell me why)"));
+		    }
 		    return(null);
 		}
 	    });
