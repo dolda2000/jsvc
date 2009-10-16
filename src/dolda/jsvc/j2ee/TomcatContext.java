@@ -6,14 +6,17 @@ import javax.servlet.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.io.*;
+import java.util.logging.*;
 
 public class TomcatContext extends J2eeContext {
     private final String name;
+    private static final Logger logger = Logger.getLogger("dolda.jsvc.context");
     
     TomcatContext(ServletConfig sc) {
 	super(sc);
 	ServletContext ctx = j2eeconfig().getServletContext();
 	Class<?> cclass = ctx.getClass();
+	String name;
 	try {
 	    Method cpm = cclass.getMethod("getContextPath");
 	    name = Misc.stripslashes((String)cpm.invoke(ctx), true, true);
@@ -23,7 +26,11 @@ public class TomcatContext extends J2eeContext {
 	    throw(new RuntimeException("Could not fetch context path from Tomcat", e));
 	} catch(InvocationTargetException e) {
 	    throw(new RuntimeException("Could not fetch context path from Tomcat", e));
+	} catch(SecurityException e) {
+	    logger.log(Level.WARNING, "no permissions to fetch context name from Tomcat", e);
+	    name = null;
 	}
+	this.name = name;
 	readconfig();
     }
 
@@ -43,11 +50,21 @@ public class TomcatContext extends J2eeContext {
     }
 
     private void readconfig() {
-	String basename = System.getProperty("catalina.base");
-	File base = new File(basename);
+	File base;
+	try {
+	    String basename = System.getProperty("catalina.base");
+	    base = new File(basename);
+	} catch(SecurityException e) {
+	    logger.log(Level.WARNING, "no permssions to fetch Tomcat base directory while reading configuration", e);
+	    return;
+	}
 	config.put("jsvc.storage", "file:" + new File(new File(base, "work"), "jsvc").getPath());
 	File cdir = new File(base, "conf");
-	loadprops(config, new File(cdir, "jsvc.properties"));
+	try {
+	    loadprops(config, new File(cdir, "jsvc.properties"));
+	} catch(SecurityException e) {
+	    logger.log(Level.WARNING, "no permssions to read from Tomcat conf directory while reading configuration", e);
+	}
     }
     
     public static boolean tomcatp(ServletConfig sc) {
