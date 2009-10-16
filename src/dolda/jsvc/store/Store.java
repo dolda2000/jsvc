@@ -24,7 +24,7 @@ public abstract class Store implements Iterable<File> {
 	ThreadContext ctx = ThreadContext.current();
 	if(ctx == null)
 	    throw(new RuntimeException("Not running in jsvc context"));
-	String bn = ctx.server().config("jsvc.storage");
+	String bn = ctx.server().sysconfig("jsvc.storage", null);
 	if(bn == null)
 	    throw(new RuntimeException("No storage root has been configured"));
 	return(bn);

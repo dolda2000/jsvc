@@ -11,18 +11,18 @@ public class Servlet extends HttpServlet {
     private ThreadContext tg;
 
     public void init(ServletConfig cfg) throws ServletException {
-	Properties sprop = new Properties();
+	J2eeContext ctx = J2eeContext.create(cfg);
 	try {
 	    InputStream pi = Servlet.class.getClassLoader().getResourceAsStream("jsvc.properties");
 	    try {
-		sprop.load(pi);
+		ctx.loadconfig(pi);
 	    } finally {
 		pi.close();
 	    }
 	} catch(IOException e) {
 	    throw(new Error(e));
 	}
-	String clnm = (String)sprop.get("jsvc.bootstrap");
+	String clnm = ctx.libconfig("jsvc.bootstrap", null);
 	if(clnm == null)
 	    throw(new ServletException("No JSvc bootstrapper specified"));
 	Class<?> bc;
@@ -31,7 +31,6 @@ public class Servlet extends HttpServlet {
 	} catch(ClassNotFoundException e) {
 	    throw(new ServletException("Invalid JSvc bootstrapper specified", e));
 	}
-	ServerContext ctx = J2eeContext.create(cfg);
 	String tgn;
 	if(ctx.name() != null)
 	    tgn = "JSvc service for " + ctx.name();

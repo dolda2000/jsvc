@@ -58,10 +58,10 @@ public class TomcatContext extends J2eeContext {
 	    logger.log(Level.WARNING, "no permissions to fetch Tomcat base directory while reading configuration", e);
 	    return;
 	}
-	config.put("jsvc.storage", "file:" + new File(new File(base, "work"), "jsvc").getPath());
+	sysconfig.put("jsvc.storage", "file:" + new File(new File(base, "work"), "jsvc").getPath());
 	File cdir = new File(base, "conf");
 	try {
-	    loadprops(config, new File(cdir, "jsvc.properties"));
+	    loadprops(sysconfig, new File(cdir, "jsvc.properties"));
 	} catch(SecurityException e) {
 	    logger.log(Level.WARNING, "no permssions to read from Tomcat conf directory while reading configuration", e);
 	}

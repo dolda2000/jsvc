@@ -9,12 +9,13 @@ import java.io.*;
 public abstract class J2eeContext implements ServerContext {
     private final ServletConfig sc;
     private final long ctime;
-    protected final Properties config;
+    protected final Properties sysconfig, libconfig;
     
     protected J2eeContext(ServletConfig sc) {
 	this.sc = sc;
 	this.ctime = System.currentTimeMillis();
-	config = new Properties();
+	sysconfig = new Properties();
+	libconfig = new Properties();
     }
     
     static J2eeContext create(ServletConfig sc) {
@@ -27,8 +28,16 @@ public abstract class J2eeContext implements ServerContext {
 	return(ctime);
     }
     
-    public String config(String key) {
-	return((String)config.get(key));
+    public String sysconfig(String key, String def) {
+	return(sysconfig.getProperty(key, def));
+    }
+    
+    public String libconfig(String key, String def) {
+	return(libconfig.getProperty(key, def));
+    }
+    
+    void loadconfig(InputStream in) throws IOException {
+	libconfig.load(in);
     }
     
     public ServletConfig j2eeconfig() {
