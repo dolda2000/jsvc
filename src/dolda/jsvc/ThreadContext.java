@@ -1,7 +1,9 @@
 package dolda.jsvc;
 
+import dolda.jsvc.util.Misc;
 import java.util.logging.*;
 import java.lang.reflect.*;
+import java.util.*;
 
 public class ThreadContext extends ThreadGroup {
     private Logger logger = Logger.getLogger("dolda.jsvc.context");
@@ -9,6 +11,8 @@ public class ThreadContext extends ThreadGroup {
     private long reqs = 0;
     private final ServerContext ctx;
     public final Responder root;
+    private int timelimit = 0;
+    private boolean forcelimit = false;
     
     public ThreadContext(ThreadGroup parent, String name, ServerContext ctx, Class<?> bootclass) {
 	super((parent == null)?(Thread.currentThread().getThreadGroup()):parent, name);
@@ -18,7 +22,88 @@ public class ThreadContext extends ThreadGroup {
 		    logger.log(Level.SEVERE, "Worker thread terminated with an uncaught exception", e);
 		}
 	    };
+	
+	int tl;
+	tl = Integer.parseInt(ctx.sysconfig("jsvc.timelimit", "0"));
+	if((tl > 0) && ((timelimit == 0) || (tl < timelimit)))
+	    timelimit = tl;
+	tl = Integer.parseInt(ctx.libconfig("jsvc.timelimit", "0"));
+	if((tl > 0) && ((timelimit == 0) || (tl < timelimit)))
+	    timelimit = tl;
+	forcelimit |= Misc.boolval(ctx.sysconfig("jsvc.forcelimit", "0"));
+	forcelimit |= Misc.boolval(ctx.libconfig("jsvc.forcelimit", "0"));
+	
 	root = bootstrap(bootclass);
+	
+	if(timelimit > 0)
+	    (new WatchDog()).start();
+    }
+    
+    private class WatchDog extends Thread {
+	private Map<RequestThread, State> state = new WeakHashMap<RequestThread, State>();
+	
+	private class State {
+	    String st = "running";
+	    long lastkill;
+	}
+	
+	private WatchDog() {
+	    super(ThreadContext.this, "Worker watchdog");
+	    setDaemon(true);
+	}
+	
+	@SuppressWarnings("deprecation")
+	private long ckthread(long now, RequestThread rt) {
+	    State st = state.get(rt);
+	    if(st == null) {
+		st = new State();
+		state.put(rt, st);
+	    }
+	    if(st.st == "running") {
+		if(now - rt.stime() > timelimit) {
+		    rt.interrupt();
+		    st.st = "interrupted";
+		    st.lastkill = now;
+		    return(5000);
+		} else {
+		    return(timelimit - (now - rt.stime()));
+		}
+	    } else if((st.st == "interrupted") || (st.st == "killed")) {
+		if(st.st == "killed")
+		    logger.log(Level.WARNING, "Thread " + rt + " refused to die; killing again");
+		if(now - st.lastkill > 5000) {
+		    rt.stop();
+		    st.st = "killed";
+		    st.lastkill = now;
+		} else {
+		    return(5000 - (now - st.lastkill));
+		}
+	    }
+	    return(timelimit);
+	}
+
+	public void run() {
+	    try {
+		while(true) {
+		    long next = timelimit;
+		    long now = System.currentTimeMillis();
+		    Thread[] w = new Thread[workers.activeCount() + 5];
+		    int num = workers.enumerate(w);
+		    for(int i = 0; i < num; i++) {
+			if(w[i] instanceof RequestThread){
+			    RequestThread rt = (RequestThread)w[i];
+			    if(rt.stime() > 0) {
+				long n = ckthread(now, rt);
+				if(n < next)
+				    next = n;
+			    }
+			}
+		    }
+		    Thread.sleep(next);
+		}
+	    } catch(InterruptedException e) {
+	    }
+	}
     }
     
     public void uncaughtException(Thread t, Throwable e) {

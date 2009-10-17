@@ -122,4 +122,13 @@ public class Misc {
 	}
 	return(buf.toString());
     }
+    
+    public static boolean boolval(String val) {
+	val = val.trim().toLowerCase();
+	if(val.equals("1") || val.equals("on") || val.equals("true") || val.equals("yes") || val.equals("\u22a4"))
+	    return(true);
+	if(val.equals("0") || val.equals("off") || val.equals("false") || val.equals("no") || val.equals("\u22a5"))
+	    return(false);
+	throw(new IllegalArgumentException("value not recognized as boolean: " + val));
+    }
 }
