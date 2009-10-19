@@ -15,7 +15,6 @@ public class J2eeRequest extends ResponseBuffer {
     private String method, path;
     private URL url, context;
     private MultiMap<String, String> params = null;
-    private Map<Object, Object> props = new HashMap<Object, Object>();
     
     public J2eeRequest(ServletConfig cfg, HttpServletRequest req, HttpServletResponse resp) {
 	this.cfg = cfg;
@@ -69,10 +68,6 @@ public class J2eeRequest extends ResponseBuffer {
 	path = req.getPathInfo();
 	while((path.length() > 0) && (path.charAt(0) == '/'))
 	    path = path.substring(1);
-    }
-    
-    public Map<Object, Object> props() {
-	return(props);
     }
     
     public SocketAddress remoteaddr() {
