@@ -10,6 +10,10 @@ public abstract class SimpleWriter implements Responder {
 	this.ctype = ctype;
     }
     
+    public SimpleWriter() {
+	this("html");
+    }
+    
     public abstract void respond(Request req, PrintWriter out);
     
     public void respond(Request req) {

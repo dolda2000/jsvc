@@ -129,4 +129,14 @@ public class Params {
 	}
 	return(null);
     }
+    
+    public static MultiMap<String, String> stdparams(Request req) {
+	MultiMap<String, String> params = Params.urlparams(req);
+	if(req.method() == "POST") {
+	    MultiMap<String, String> pp = Params.postparams(req);
+	    if(pp != null)
+		params.putAll(pp);
+	}
+	return(params);
+    }
 }

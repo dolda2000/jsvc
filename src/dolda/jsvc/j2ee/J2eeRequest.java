@@ -144,14 +144,8 @@ public class J2eeRequest extends ResponseBuffer {
     }
     
     public MultiMap<String, String> params() {
-	if(params == null) {
-	    params = Params.urlparams(this);
-	    if(method == "POST") {
-		MultiMap<String, String> pp = Params.postparams(this);
-		if(pp != null)
-		    params.putAll(pp);
-	    }
-	}
+	if(params == null)
+	    params = Params.stdparams(this);
 	return(params);
     }
     
