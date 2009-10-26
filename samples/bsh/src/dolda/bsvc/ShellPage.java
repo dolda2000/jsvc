@@ -6,6 +6,47 @@ import java.io.*;
 import bsh.Interpreter;
 
 public class ShellPage extends SimpleWriter {
+    private RConsole cons = new RConsole();
+    private Interpreter ip = new Interpreter(cons);
+    
+    private static class RConsole implements bsh.ConsoleInterface {
+	public Console back;
+	Reader in = new StringReader("");
+	
+	public void error(Object msg) {
+	    if(back != null)
+		back.error(msg);
+	}
+	
+	public void print(Object msg) {
+	    if(back != null)
+		back.print(msg);
+	}
+	
+	public void println(Object msg) {
+	    if(back != null)
+		back.println(msg);
+	}
+	
+	public PrintStream getOut() {
+	    if(back == null)
+		return(null);
+	    return(back.getOut());
+	}
+	
+	public PrintStream getErr() {
+	    if(back == null)
+		return(null);
+	    return(back.getErr());
+	}
+	
+	public Reader getIn() {
+	    if(back == null)
+		return(null);
+	    return(in);
+	}
+    }
+    
     private static class Console implements bsh.ConsoleInterface {
 	ByteArrayOutputStream obuf = new ByteArrayOutputStream();
 	ByteArrayOutputStream ebuf = new ByteArrayOutputStream();
@@ -61,25 +102,31 @@ public class ShellPage extends SimpleWriter {
 	out.println("<h1>Shell</h1>");
 	if((req.method() == "POST") && (cmd != null)) {
 	    Console cons = new Console();
-	    Interpreter ip = new Interpreter(cons);
-	    Object resp;
-	    try {
-		ip.set("req", req);
-		resp = ip.eval(cmd);
-		out.println("<pre>");
-		out.println(Misc.htmlq((resp == null)?"(null)":(resp.toString())));
-		out.println("</pre>");
-	    } catch(bsh.EvalError exc) {
-		out.println("<h2>Evaluation error</h2>");
-		out.println("<pre>");
-		out.print(exc.toString());
-		out.println("</pre>");
-		if(exc instanceof bsh.TargetError) {
-		    bsh.TargetError te = (bsh.TargetError)exc;
-		    out.println("<h3>Target error</h3>");
-		    out.println("<pre>");
-		    te.getTarget().printStackTrace(out);
-		    out.println("</pre>");
+	    synchronized(ip) {
+		this.cons.back = cons;
+		try {
+		    Object resp;
+		    try {
+			ip.set("req", req);
+			resp = ip.eval(cmd);
+			out.println("<pre>");
+			out.println(Misc.htmlq((resp == null)?"(null)":(resp.toString())));
+			out.println("</pre>");
+		    } catch(bsh.EvalError exc) {
+			out.println("<h2>Evaluation error</h2>");
+			out.println("<pre>");
+			out.print(exc.toString());
+			out.println("</pre>");
+			if(exc instanceof bsh.TargetError) {
+			    bsh.TargetError te = (bsh.TargetError)exc;
+			    out.println("<h3>Target error</h3>");
+			    out.println("<pre>");
+			    te.getTarget().printStackTrace(out);
+			    out.println("</pre>");
+			}
+		    }
+		} finally {
+		    this.cons.back = null;
 		}
 	    }
 	    String eo = new String(cons.obuf.toByteArray(), Misc.utf8);
