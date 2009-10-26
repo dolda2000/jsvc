@@ -59,7 +59,7 @@ public class J2eeRequest extends ResponseBuffer {
 		q = "";
 	    try {
 		url = new URL(scheme, host, port, req.getContextPath() + req.getServletPath() + pi + q);
-		context = new URL(scheme, host, port, req.getContextPath());
+		context = new URL(scheme, host, port, req.getContextPath() + "/");
 	    } catch(MalformedURLException e) {
 		throw(new Error(e));
 	    }
