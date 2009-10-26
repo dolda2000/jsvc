@@ -88,7 +88,7 @@ public class PerSession implements Responder {
     public void respond(Request req) {
 	Session sess = Session.get(req);
 	Responder resp;
-	synchronized(sess) {
+	synchronized(this) {
 	    resp = (Responder)sess.get(rcl, null);
 	    if(resp == null) {
 		resp = create(sess);

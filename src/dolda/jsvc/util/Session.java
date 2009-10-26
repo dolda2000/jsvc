@@ -6,6 +6,7 @@ import java.security.SecureRandom;
 
 public class Session implements java.io.Serializable {
     private static final Map<String, Session> sessions = new HashMap<String, Session>();
+    private static final Map<Request, Session> cache = new WeakHashMap<Request, Session>();
     private static final SecureRandom prng;
     private static long lastclean = 0;
     private final Map<Object, Object> props = new HashMap<Object, Object>();
@@ -24,38 +25,28 @@ public class Session implements java.io.Serializable {
 	public void expire(Session sess);
     }
     
-    public void listen(Listener l) {
-	synchronized(ll) {
-	    ll.add(l);
-	}
+    public synchronized void listen(Listener l) {
+	ll.add(l);
     }
     
-    public Object get(Object key, Object def) {
-	synchronized(props) {
-	    if(props.containsKey(key))
-		return(props.get(key));
-	    else
-		return(def);
-	}
+    public synchronized Object get(Object key, Object def) {
+	if(props.containsKey(key))
+	    return(props.get(key));
+	else
+	    return(def);
     }
     
-    public Object put(Object key, Object val) {
-	synchronized(props) {
-	    return(props.put(key, val));
-	}
+    public synchronized Object put(Object key, Object val) {
+	return(props.put(key, val));
     }
     
-    private void expire() {
-	synchronized(ll) {
-	    for(Listener l : ll)
-		l.expire(this);
-	}
+    private synchronized void expire() {
+	for(Listener l : ll)
+	    l.expire(this);
     }
     
-    public static int num() {
-	synchronized(sessions) {
-	    return(sessions.size());
-	}
+    public synchronized static int num() {
+	return(sessions.size());
     }
 
     private static String newid() {
@@ -82,45 +73,47 @@ public class Session implements java.io.Serializable {
 	return(sess);
     }
     
-    private static void clean() {
+    private synchronized static void clean() {
 	long now = System.currentTimeMillis();
-	synchronized(sessions) {
-	    for(Iterator<Session> i = sessions.values().iterator(); i.hasNext();) {
-		Session sess = i.next();
-		if(now > sess.atime + sess.etime) {
-		    i.remove();
-		    sess.expire();
-		}
+	for(Iterator<Session> i = sessions.values().iterator(); i.hasNext();) {
+	    Session sess = i.next();
+	    if(now > sess.atime + sess.etime) {
+		i.remove();
+		sess.expire();
 	    }
 	}
     }
 
-    public static Session get(Request req) {
+    public synchronized static Session get(Request req) {
 	long now = System.currentTimeMillis();
 	if(now - lastclean > 3600 * 1000) {
 	    clean();
 	    lastclean = now;
 	}
 	
+	Session sess = cache.get(req);
+	if(sess != null)
+	    return(sess);
+	
 	MultiMap<String, Cookie> cookies = Cookie.get(req);
 	Cookie sc = cookies.get("jsvc-session");
-	Session sess = null;
-	synchronized(sessions) {
-	    if(sc != null)
-		sess = sessions.get(sc.value);
-	    if(sess == null) {
-		String id = newid();
-		sess = create(req);
-		sessions.put(id, sess);
-		sc = new Cookie("jsvc-session", id);
-		sc.expires = new Date(System.currentTimeMillis() + (86400L * 365L * 1000L));
-		sc.path = req.ctx().sysconfig("jsvc.session.path", req.rooturl().getPath());
-		String pd = req.ctx().sysconfig("jsvc.session.domain", null);
-		if(pd != null)
-		    sc.domain = pd;
-		sc.addto(req);
-	    }
+
+	if(sc != null)
+	    sess = sessions.get(sc.value);
+	if(sess == null) {
+	    String id = newid();
+	    sess = create(req);
+	    sessions.put(id, sess);
+	    sc = new Cookie("jsvc-session", id);
+	    sc.expires = new Date(System.currentTimeMillis() + (86400L * 365L * 1000L));
+	    sc.path = req.ctx().sysconfig("jsvc.session.path", req.rooturl().getPath());
+	    String pd = req.ctx().sysconfig("jsvc.session.domain", null);
+	    if(pd != null)
+		sc.domain = pd;
+	    sc.addto(req);
 	}
+	
+	cache.put(req, sess);
 	return(sess);
     }
     
