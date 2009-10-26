@@ -24,7 +24,7 @@
    
    <target name="bin-jar" depends="bin">
      <copy todir="build/bin" file="etc/jsvc.properties" />
-      <copy todir="build/bin/haven/errsvc">
+      <copy todir="build/bin/dolda/bsvc/static">
 	<fileset dir="static">
 	  <!-- <include name="static/**" /> -->
 	</fileset>

@@ -6,6 +6,7 @@ import java.text.*;
 import java.io.*;
 
 public class Cookie {
+    private final static Map<Request, MultiMap<String, Cookie>> cache = new WeakHashMap<Request, MultiMap<String, Cookie>>();
     public final static DateFormat datefmt;
     static {
 	datefmt = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.ENGLISH);
@@ -88,6 +89,17 @@ public class Cookie {
 	return(ret);
     }
     
+    public static MultiMap<String, Cookie> get(Request req) {
+	synchronized(cache) {
+	    MultiMap<String, Cookie> ret = cache.get(req);
+	    if(ret == null) {
+		ret = parse(req);
+		cache.put(req, ret);
+	    }
+	    return(ret);
+	}
+    }
+
     public String toString() {
 	StringBuilder buf = new StringBuilder();
 	buf.append("Cookie(");
