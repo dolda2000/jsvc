@@ -19,11 +19,11 @@ public class PerSession implements Responder {
     private Object makedata(Session sess) {
 	try {
 	    try {
-		return(dcl.getConstructor().newInstance());
+		return(dcl.getConstructor(Session.class).newInstance(sess));
 	    } catch(NoSuchMethodException e) {
 	    }
 	    try {
-		return(dcl.getConstructor(Session.class).newInstance(sess));
+		return(dcl.getConstructor().newInstance());
 	    } catch(NoSuchMethodException e) {
 	    }
 	} catch(InstantiationException e) {
