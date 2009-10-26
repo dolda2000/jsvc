@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<project name="bsvc" default="war">
+    
+   <target name="build-env">
+     <mkdir dir="build" />
+     <mkdir dir="build/bin" />
+   </target>
+
+   <target name="bin" depends="build-env">
+      <javac srcdir="src" destdir="build/bin" debug="on">
+	<classpath>
+	  <pathelement location="lib/jsvc.jar" />
+	  <pathelement location="lib/bsh.jar" />
+	</classpath>
+        <!-- <compilerarg value="-Xlint:unchecked" /> -->
+      </javac>
+   </target>
+   
+   <target name="bin-jar" depends="bin">
+     <copy todir="build/bin" file="etc/jsvc.properties" />
+      <copy todir="build/bin/haven/errsvc">
+	<fileset dir="static">
+	  <!-- <include name="static/**" /> -->
+	</fileset>
+      </copy>
+     <jar destfile="build/bsvc.jar" basedir="build/bin" />
+   </target>
+   
+   <target name="war" depends="bin-jar">
+     <taskdef name="jsvc-war" classname="dolda.jsvc.j2ee.Archive$AntTask" classpath="lib/jsvc.jar" />
+     <jsvc-war destfile="build/bsvc.war">
+       <jars dir=".">
+	 <include name="build/bsvc.jar" />
+	 <include name="lib/*.jar" />
+       </jars>
+     </jsvc-war>
+   </target>
+
+   <target name="clean">
+     <delete dir="build" />
+   </target>
+</project>
