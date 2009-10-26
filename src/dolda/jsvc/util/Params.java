@@ -7,13 +7,9 @@ import java.net.*;
 import java.nio.charset.CharacterCodingException;
 
 public class Params {
-    public static class EncodingException extends RequestRestart {
+    public static class EncodingException extends ClientError {
 	public EncodingException(String msg) {
-	    super(msg);
-	}
-	
-	public void respond(Request req) {
-	    throw(Restarts.stdresponse(400, "Invalid parameter encoding", getMessage()));
+	    super("Invalid parameter encoding", msg);
 	}
     }
     
