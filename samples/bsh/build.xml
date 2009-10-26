@@ -5,6 +5,11 @@
    <target name="build-env">
      <mkdir dir="build" />
      <mkdir dir="build/bin" />
+     <fail message="You need to add the files jsvc.jar and bsh.jar to the lib directory manually.">
+       <condition>
+	 <not><and><available file="lib/jsvc.jar" /><available file="lib/bsh.jar" /></and></not>
+       </condition>
+     </fail>
    </target>
 
    <target name="bin" depends="build-env">
