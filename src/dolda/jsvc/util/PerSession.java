@@ -93,6 +93,14 @@ public class PerSession implements Responder {
 	    if(resp == null) {
 		resp = create(sess);
 		sess.put(rcl, resp);
+		if(resp instanceof ContextResponder) {
+		    final ContextResponder cr = (ContextResponder)resp;
+		    sess.listen(new Session.Listener() {
+			    public void expire(Session sess) {
+				cr.destroy();
+			    }
+			});
+		}
 	    }
 	}
 	resp.respond(req);
