@@ -6,46 +6,8 @@ import java.io.*;
 import bsh.Interpreter;
 
 public class ShellPage extends SimpleWriter {
-    private RConsole cons = new RConsole();
+    private Console cons = new Console();
     private Interpreter ip = new Interpreter(cons);
-    
-    private static class RConsole implements bsh.ConsoleInterface {
-	public Console back;
-	Reader in = new StringReader("");
-	
-	public void error(Object msg) {
-	    if(back != null)
-		back.error(msg);
-	}
-	
-	public void print(Object msg) {
-	    if(back != null)
-		back.print(msg);
-	}
-	
-	public void println(Object msg) {
-	    if(back != null)
-		back.println(msg);
-	}
-	
-	public PrintStream getOut() {
-	    if(back == null)
-		return(null);
-	    return(back.getOut());
-	}
-	
-	public PrintStream getErr() {
-	    if(back == null)
-		return(null);
-	    return(back.getErr());
-	}
-	
-	public Reader getIn() {
-	    if(back == null)
-		return(null);
-	    return(in);
-	}
-    }
     
     private static class Console implements bsh.ConsoleInterface {
 	ByteArrayOutputStream obuf = new ByteArrayOutputStream();
@@ -85,6 +47,11 @@ public class ShellPage extends SimpleWriter {
 	public Reader getIn() {
 	    return(in);
 	}
+	
+	public void reset() {
+	    obuf.reset();
+	    ebuf.reset();
+	}
     }
     
     public void respond(Request req, PrintWriter out) {
@@ -101,37 +68,32 @@ public class ShellPage extends SimpleWriter {
 	out.println("<body>");
 	out.println("<h1>Shell</h1>");
 	if((req.method() == "POST") && (cmd != null)) {
-	    Console cons = new Console();
-	    synchronized(ip) {
-		this.cons.back = cons;
+	    String eo, ee;
+	    synchronized(cons) {
+		cons.reset();
+		Object resp;
 		try {
-		    Object resp;
-		    try {
-			ip.set("req", req);
-			resp = ip.eval(cmd);
+		    ip.set("req", req);
+		    resp = ip.eval(cmd);
+		    out.println("<pre>");
+		    out.println(Misc.htmlq((resp == null)?"(null)":(resp.toString())));
+		    out.println("</pre>");
+		} catch(bsh.EvalError exc) {
+		    out.println("<h2>Evaluation error</h2>");
+		    out.println("<pre>");
+		    out.print(exc.toString());
+		    out.println("</pre>");
+		    if(exc instanceof bsh.TargetError) {
+			bsh.TargetError te = (bsh.TargetError)exc;
+			out.println("<h3>Target error</h3>");
 			out.println("<pre>");
-			out.println(Misc.htmlq((resp == null)?"(null)":(resp.toString())));
+			te.getTarget().printStackTrace(out);
 			out.println("</pre>");
-		    } catch(bsh.EvalError exc) {
-			out.println("<h2>Evaluation error</h2>");
-			out.println("<pre>");
-			out.print(exc.toString());
-			out.println("</pre>");
-			if(exc instanceof bsh.TargetError) {
-			    bsh.TargetError te = (bsh.TargetError)exc;
-			    out.println("<h3>Target error</h3>");
-			    out.println("<pre>");
-			    te.getTarget().printStackTrace(out);
-			    out.println("</pre>");
-			}
 		    }
-		} finally {
-		    this.cons.back = null;
 		}
+		eo = new String(cons.obuf.toByteArray(), Misc.utf8);
+		ee = new String(cons.ebuf.toByteArray(), Misc.utf8);
 	    }
-	    String eo = new String(cons.obuf.toByteArray(), Misc.utf8);
-	    String ee = new String(cons.ebuf.toByteArray(), Misc.utf8);
-	    cons = null;
 	    if(eo.length() > 0) {
 		out.println("<h2>Output</h2>");
 		out.println("<pre>");
