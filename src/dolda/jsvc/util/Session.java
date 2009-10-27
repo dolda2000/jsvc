@@ -92,8 +92,10 @@ public class Session implements java.io.Serializable {
 	}
 	
 	Session sess = cache.get(req);
-	if(sess != null)
+	if(sess != null) {
+	    sess.atime = System.currentTimeMillis();
 	    return(sess);
+	}
 	
 	MultiMap<String, Cookie> cookies = Cookie.get(req);
 	Cookie sc = cookies.get("jsvc-session");
@@ -114,6 +116,7 @@ public class Session implements java.io.Serializable {
 	}
 	
 	cache.put(req, sess);
+	sess.atime = System.currentTimeMillis();
 	return(sess);
     }
     
