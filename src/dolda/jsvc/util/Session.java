@@ -9,6 +9,7 @@ public class Session implements java.io.Serializable {
     private static final Map<Request, Session> cache = new WeakHashMap<Request, Session>();
     private static final SecureRandom prng;
     private static long lastclean = 0;
+    private final String id;
     private final Map<Object, Object> props = new HashMap<Object, Object>();
     private long ctime = System.currentTimeMillis(), atime = ctime, etime = 86400 * 1000;
     private Collection<Listener> ll = new HashSet<Listener>();
@@ -22,7 +23,11 @@ public class Session implements java.io.Serializable {
     }
     
     public static interface Listener {
-	public void expire(Session sess);
+	public void destroy(Session sess);
+    }
+    
+    private Session(String id) {
+	this.id = id;
     }
     
     public synchronized void listen(Listener l) {
@@ -40,9 +45,16 @@ public class Session implements java.io.Serializable {
 	return(props.put(key, val));
     }
     
+    public void destroy() {
+	synchronized(Session.class) {
+	    sessions.remove(id);
+	}
+	expire();
+    }
+    
     private synchronized void expire() {
 	for(Listener l : ll)
-	    l.expire(this);
+	    l.destroy(this);
     }
     
     public synchronized static int num() {
@@ -60,8 +72,8 @@ public class Session implements java.io.Serializable {
 	return(buf.toString());
     }
 
-    private static Session create(Request req) {
-	Session sess = new Session();
+    private static Session create(Request req, String id) {
+	Session sess = new Session(id);
 	long etime = 0;
 	int ct;
 	ct = Integer.parseInt(req.ctx().libconfig("jsvc.session.expire", "0"));
@@ -103,10 +115,9 @@ public class Session implements java.io.Serializable {
 	if(sc != null)
 	    sess = sessions.get(sc.value);
 	if(sess == null) {
-	    String id = newid();
-	    sess = create(req);
-	    sessions.put(id, sess);
-	    sc = new Cookie("jsvc-session", id);
+	    sess = create(req, newid());
+	    sessions.put(sess.id, sess);
+	    sc = new Cookie("jsvc-session", sess.id);
 	    sc.expires = new Date(System.currentTimeMillis() + (86400L * 365L * 1000L));
 	    sc.path = req.ctx().sysconfig("jsvc.session.path", req.rooturl().getPath());
 	    String pd = req.ctx().sysconfig("jsvc.session.domain", null);
