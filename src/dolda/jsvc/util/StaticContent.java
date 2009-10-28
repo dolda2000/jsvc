@@ -10,24 +10,22 @@ public class StaticContent implements Responder {
     private final boolean dir;
     private final String mimetype;
     
-    public StaticContent(Class<?> base, String resname, boolean dir, String mimetype) {
+    public StaticContent(Class<?> base, String resname, String mimetype) {
 	this.base = base;
-	this.resname = resname;
-	this.dir = dir;
+	this.dir = ((this.resname = resname).charAt(resname.length() - 1) == '/');
 	this.mimetype = mimetype;
     }
     
-    public StaticContent(String resname, boolean dir, String mimetype) {
-	this(null, resname, dir, mimetype);
+    public StaticContent(String resname, String mimetype) {
+	this(null, resname, mimetype);
     }
     
     public void respond(Request req) {
 	String nm;
-	if(dir) {
-	    nm = resname + "/" + req.path();
-	} else {
+	if(dir)
+	    nm = resname + req.path();
+	else
 	    nm = resname;
-	}
 	InputStream in;
 	if(base == null) {
 	    in = StaticContent.class.getClassLoader().getResourceAsStream(nm);
