@@ -96,7 +96,7 @@ public class PerSession implements Responder {
 		if(resp instanceof ContextResponder) {
 		    final ContextResponder cr = (ContextResponder)resp;
 		    sess.listen(new Session.Listener() {
-			    public void expire(Session sess) {
+			    public void destroy(Session sess) {
 				cr.destroy();
 			    }
 			});
