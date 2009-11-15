@@ -46,12 +46,10 @@ public class PeekReader extends Reader {
     }
 
     public int peek(boolean skipws) throws IOException {
-	if(p)
-	    return(la);
-	do {
+	while(!p || (skipws && (la >= 0) && whitespace((char)la))) {
 	    la = back.read();
 	    p = true;
-	} while(skipws && (la >= 0) && whitespace((char)la));
+	}
 	return(la);
     }
     
