@@ -36,16 +36,6 @@ public class Parser {
 	return(doc.createElementNS(null, name));
     }
     
-    protected Attr makeattr(Document doc, Element el, String name, String val) {
-	Attr a = doc.createAttributeNS(el.getNamespaceURI(), name);
-	a.setValue(val);
-	return(a);
-    }
-
-    protected Attr makeattr(Document doc, Element el, String name) {
-	return(doc.createAttributeNS(el.getNamespaceURI(), name));
-    }
-
     protected String name(State s) throws IOException {
 	StringBuilder buf = new StringBuilder();
 	while(true) {
@@ -75,7 +65,7 @@ public class Parser {
     }
 
     protected Attr attribute(State s, Element el) throws IOException {
-	String nm = name(s);
+	Attr a = s.doc.createAttributeNS(null, name(s));
 	s.in.peek(true);
 	int c = s.in.read();
 	if(c != '=')
@@ -98,7 +88,8 @@ public class Parser {
 		buf.append((char)s.in.read());
 	    }
 	}
-	return(makeattr(s.doc, el, nm, buf.toString()));
+	a.setValue(buf.toString());
+	return(a);
     }
     
     protected Element element(State s) throws IOException {
