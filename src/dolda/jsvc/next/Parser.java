@@ -3,26 +3,10 @@ package dolda.jsvc.next;
 import java.io.*;
 import java.util.*;
 import org.w3c.dom.*;
-import org.w3c.dom.bootstrap.*;
 
 public class Parser {
-    private static final DOMImplementation domimp;
-    
-    static {
-	DOMImplementationRegistry reg;
-	try {
-	    reg = DOMImplementationRegistry.newInstance();
-	} catch(Exception e) {
-	    throw(new Error(e));
-	}
-	DOMImplementation di = reg.getDOMImplementation("");
-	if(di == null)
-	    throw(new RuntimeException("Could not get a DOM implemenation"));
-	domimp = di;
-    }
-
     public class State {
-	public final Document doc = domimp.createDocument(null, "dummy", null);
+	public final Document doc = DomUtil.document(null, "dummy");
 	public final PeekReader in;
 	
 	private State(Reader in) {
