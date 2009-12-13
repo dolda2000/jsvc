@@ -142,7 +142,7 @@ public class XmlWriter {
 	}
 	
 	if(postbreak(out, el))
-	    out.indent(indent);
+	    out.write('\n');
     }
     
     protected void text(ColumnWriter out, String s, int indent) throws IOException {
@@ -200,16 +200,5 @@ public class XmlWriter {
 	w.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
 	write(w);
 	w.flush();
-    }
-    
-    public static void main(String[] args) throws Exception {
-	Html barda = Html.xhtml11("Barda");
-	barda.addcss("/slen.css", "Test");
-	barda.insert("body", barda.el("h1", barda.text("Mast")));
-	barda.finalise();
-	XmlWriter w = new XmlWriter(barda.doc);
-	w.setnsname(Html.ns, null);
-	w.write(System.out);
-	System.out.flush();
     }
 }
