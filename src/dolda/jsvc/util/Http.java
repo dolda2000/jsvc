@@ -59,7 +59,7 @@ public class Http {
 	return(buf.toString());
     }
     
-    public static String tokenunquote(Reader in) throws IOException {
+    public static String tokenunquote(PushbackReader in) throws IOException {
 	StringBuilder buf = new StringBuilder();
 	String st = "eatws";
 	int c = in.read();
@@ -70,15 +70,17 @@ public class Http {
 		else
 		    st = "token";
 	    } else if(st == "token") {
-		if((c < 0) || Character.isWhitespace((char)c) || (tspecials.indexOf((char)c) >= 0)) {
+		if(c == '"') {
+		    st = "quoted";
+		    c = in.read();
+		} else if((c < 0) || Character.isWhitespace((char)c) || (tspecials.indexOf((char)c) >= 0)) {
+		    if(c >= 0)
+			in.unread(c);
 		    if(buf.length() == 0)
 			return(null);
 		    return(buf.toString());
 		} else if((c < 32) || (c >= 127)) {
 		    throw(new EncodingException("Invalid characters in header"));
-		} else if(c == '"') {
-		    st = "quoted";
-		    c = in.read();
 		} else {
 		    buf.append((char)c);
 		    c = in.read();

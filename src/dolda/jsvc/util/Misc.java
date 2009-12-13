@@ -131,4 +131,14 @@ public class Misc {
 	    return(false);
 	throw(new IllegalArgumentException("value not recognized as boolean: " + val));
     }
+    
+    public static void eatws(PushbackReader in) throws IOException {
+	int c;
+	do {
+	    c = in.read();
+	    if(c < 0)
+		return;
+	} while(Character.isWhitespace(c));
+	in.unread(c);
+    }
 }

@@ -61,13 +61,14 @@ public class Cookie {
 	MultiMap<String, Cookie> ret = new WrappedMultiMap<String, Cookie>(new TreeMap<String, Collection<Cookie>>());
 	for(String in : req.inheaders().values("Cookie")) {
 	    try {
-		StringReader r = new StringReader(in);
+		PushbackReader r = new PushbackReader(new StringReader(in));
 		Cookie c = null;
 		while(true) {
 		    String k = Http.tokenunquote(r);
+		    Misc.eatws(r);
+		    if((k == null) || (r.read() != '='))
+			throw(new Http.EncodingException("Illegal cookie header format"));
 		    String v = Http.tokenunquote(r);
-		    if(k == null)
-			break;
 		    if(k.equals("$Version")) {
 			if(Integer.parseInt(v) != 1)
 			    throw(new Http.EncodingException("Unknown cookie format version"));
@@ -81,6 +82,12 @@ public class Cookie {
 			c = new Cookie(k, v);
 			ret.add(k, c);
 		    }
+		    Misc.eatws(r);
+		    int sep = r.read();
+		    if(sep < 0)
+			break;
+		    if(sep != ';')
+			throw(new Http.EncodingException("Illegal cookie header format"));
 		}
 	    } catch(IOException e) {
 		throw(new Error(e));
