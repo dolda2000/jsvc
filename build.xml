@@ -22,6 +22,9 @@
         <compilerarg value="-Xlint:unchecked" />
       </javac>
       <copy todir="build/bin/dolda/jsvc/j2ee" file="etc/web.xml.template" />
+      <copy todir="build/bin/dolda/jsvc/next/catalog">
+	<fileset dir="etc/catalog" />
+      </copy>
     </target>
     
     <target name="jsvc-jar" depends="build-env, jsvc">

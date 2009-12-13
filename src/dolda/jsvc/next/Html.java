@@ -1,10 +1,15 @@
 package dolda.jsvc.next;
 
 import org.w3c.dom.*;
+import org.w3c.dom.ls.*;
+import javax.xml.validation.*;
+import java.net.*;
+import java.io.*;
 
 public class Html extends DocBuffer {
     public static final String ns = "http://www.w3.org/1999/xhtml";
-    
+    private static final Schema schema = DomUtil.loadxsd("xhtml1-strict.xsd");
+
     private Html(String pubid, String sysid) {
 	super(ns, "html", "html", pubid, sysid);
     }
@@ -35,5 +40,17 @@ public class Html extends DocBuffer {
     
     public void addcss(String href, String name) {
 	insert("head", csslink(href, name));
+    }
+    
+    public void validate() {
+	Validator val = schema.newValidator();
+	try {
+	    val.validate(new javax.xml.transform.dom.DOMSource(doc));
+	} catch(org.xml.sax.SAXException e) {
+	    throw(new RuntimeException(e));
+	} catch(java.io.IOException e) {
+	    /* Should never happen. */
+	    throw(new Error(e));
+	}
     }
 }
