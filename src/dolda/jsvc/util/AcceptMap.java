@@ -81,10 +81,10 @@ public class AcceptMap implements Iterable<AcceptMap.Entry> {
 				e2.q = q;
 			    flush = true;
 			    st = "ap";
-			} else if(st == "ap") {
+			} else {
 			    e.pars.put(key, val);
 			}
-		    } else {
+		    } else if(st == "ap") {
 			/* No known accept-params */
 		    }
 		    if(psep < 0) {
