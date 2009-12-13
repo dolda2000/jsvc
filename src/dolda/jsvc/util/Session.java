@@ -10,7 +10,7 @@ public class Session implements java.io.Serializable {
     private static final SecureRandom prng;
     private static long lastclean = 0;
     private final String id;
-    private final Map<Object, Object> props = new HashMap<Object, Object>();
+    private final Map<Object, Object> props = new IdentityHashMap<Object, Object>();
     private long ctime = System.currentTimeMillis(), atime = ctime, etime = 86400 * 1000;
     private Collection<Listener> ll = new HashSet<Listener>();
     
