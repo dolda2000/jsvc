@@ -222,15 +222,4 @@ public class Parser {
 	    return(String.format("\\%03o", (int)c));
 	return(Character.toString((char)c));
     }
-
-    public static void main(String[] args) throws Exception {
-	Parser p = new Parser();
-	DocumentFragment f = p.parse(new FileReader(args[0]));
-	javax.xml.transform.TransformerFactory fac = javax.xml.transform.TransformerFactory.newInstance();
-	fac.setAttribute("indent-number", 2);
-	javax.xml.transform.Transformer t = fac.newTransformer();
-	t.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
-	t.transform(new javax.xml.transform.dom.DOMSource(f), new javax.xml.transform.stream.StreamResult(System.out));
-	System.out.println(t.getClass());
-    }
 }

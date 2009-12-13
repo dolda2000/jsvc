@@ -45,16 +45,4 @@ public class IndentWriter extends XmlWriter {
 	}
 	super.attribute(out, nm, val, indent);
     }
-    
-    public static void main(String[] args) throws Exception {
-	Html barda = Html.xhtml11("Barda");
-	barda.addcss("/slen.css", "Test");
-	barda.insert("body", barda.el("h1", barda.text("Mast")));
-	barda.finalise();
-	barda.validate();
-	XmlWriter w = new IndentWriter(barda.doc);
-	w.setnsname(Html.ns, null);
-	w.write(System.out);
-	System.out.flush();
-    }
 }
