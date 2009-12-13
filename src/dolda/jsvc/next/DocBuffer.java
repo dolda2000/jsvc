@@ -19,7 +19,8 @@ public class DocBuffer {
     private Node findcursor(Node c, String name) {
 	if(c instanceof Element) {
 	    Element el = (Element)c;
-	    if(el.getNamespaceURI().equals(ns) && el.getTagName().equals("cursor") && el.getAttributeNS(ns, "name").equals(name))
+	    String ns = el.getNamespaceURI();
+	    if((ns != null) && ns.equals(DocBuffer.ns) && el.getTagName().equals("cursor") && el.getAttributeNS(null, "name").equals(name))
 		return(c);
 	}
 	for(Node n = c.getFirstChild(); n != null; n = n.getNextSibling()) {
@@ -45,12 +46,12 @@ public class DocBuffer {
 	Node c = cursor(cursor);
 	if(c == null)
 	    throw(new RuntimeException("No such cursor: `" + cursor + "'"));
-	c.getParentNode().insertBefore(c, doc.importNode(n, true));
+	c.getParentNode().insertBefore(doc.importNode(n, true), c);
     }
     
     public Element makecursor(String name) {
 	Element el = doc.createElementNS(ns, "cursor");
-	Attr a = doc.createAttributeNS(ns, "name");
+	Attr a = doc.createAttributeNS(null, "name");
 	a.setValue(name);
 	el.setAttributeNodeNS(a);
 	return(el);
@@ -69,5 +70,31 @@ public class DocBuffer {
     
     public Text text(String text) {
 	return(doc.createTextNode(text));
+    }
+    
+    public void finalise() {
+	Node n = doc;
+	while(true) {
+	    Node nx;
+	    if(n.getFirstChild() != null) {
+		nx = n.getFirstChild();
+	    } else if(n.getNextSibling() != null) {
+		nx = n.getNextSibling();
+	    } else {
+		for(nx = n.getParentNode(); nx != null; nx = nx.getParentNode()) {
+		    if(nx.getNextSibling() != null) {
+			nx = nx.getNextSibling();
+			break;
+		    }
+		}
+	    }
+	    String ns = n.getNamespaceURI();
+	    if((ns != null) && ns.equals(DocBuffer.ns))
+		n.getParentNode().removeChild(n);
+	    if(nx == null)
+		break;
+	    else
+		n = nx;
+	}
     }
 }
