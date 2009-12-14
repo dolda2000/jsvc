@@ -45,7 +45,10 @@ public class Html extends DocBuffer {
     }
     
     public void validate() {
-	Validator val = schema.newValidator();
+	Validator val;
+	synchronized(schema) {
+	    val = schema.newValidator();
+	}
 	try {
 	    val.validate(new javax.xml.transform.dom.DOMSource(doc));
 	} catch(org.xml.sax.SAXException e) {
