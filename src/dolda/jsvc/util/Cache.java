@@ -15,7 +15,7 @@ public class Cache {
 	    try {
 		cldate = Http.parsedate(ims);
 	    } catch(java.text.ParseException e) {
-		throw(Restarts.stdresponse(400, "The If-Modified-Since header is not parseable."));
+		throw(new ClientError("The If-Modified-Since header is not parseable."));
 	    }
 	    if(mdate.compareTo(cldate) <= 0) {
 		throw(new RequestRestart() {

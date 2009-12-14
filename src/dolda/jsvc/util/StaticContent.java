@@ -33,7 +33,7 @@ public class StaticContent implements Responder {
 	    in = base.getResourceAsStream(nm);
 	}
 	if(in == null)
-	    throw(Restarts.stdresponse(404));
+	    throw(new StdResponse(404));
 	Cache.checkmtime(req, req.ctx().starttime());
 	try {
 	    try {

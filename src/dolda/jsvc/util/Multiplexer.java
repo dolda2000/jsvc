@@ -18,7 +18,7 @@ public class Multiplexer implements Responder {
     public Multiplexer() {
 	this(new Responder() {
 		public void respond(Request req) {
-		    throw(Restarts.stdresponse(404, "Resource not found", "The resource you requested could not be found on this server."));
+		    throw(new StdResponse(404, "Resource not found", "The resource you requested could not be found on this server."));
 		}
 	    });
     }
@@ -40,7 +40,7 @@ public class Multiplexer implements Responder {
 	add(new Matcher() {
 		public boolean match(Request req) {
 		    if(req.path().equals(fp)) {
-			throw(Restarts.redirect(fp + "/"));
+			throw(new Redirect(fp + "/"));
 		    } else if(req.path().startsWith(fp + "/")) {
 			responder.respond(RequestWrap.chpath(req, req.path().substring(fp.length() + 1)));
 			return(true);
