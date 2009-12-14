@@ -2,10 +2,12 @@ package dolda.bsvc;
 
 import dolda.jsvc.*;
 import dolda.jsvc.util.*;
+import dolda.jsvc.next.*;
+import org.w3c.dom.*;
 import java.io.*;
 import bsh.Interpreter;
 
-public class ShellPage extends SimpleWriter {
+public class ShellPage implements Responder {
     private Console cons = new Console();
     private Interpreter ip = new Interpreter(cons);
     
@@ -54,19 +56,14 @@ public class ShellPage extends SimpleWriter {
 	}
     }
     
-    public void respond(Request req, PrintWriter out) {
+    public void respond(Request req) {
 	MultiMap<String, String> params = req.params();
 	String cmd = params.get("cmd");
 	
-	out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-	out.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">");
-	out.println("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en-US\">");
-	out.println("<head>");
-	out.println("<title>Shell</title>");
-	out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"css\" />");
-	out.println("</head>");
-	out.println("<body>");
-	out.println("<h1>Shell</h1>");
+	Html buf = Html.xhtml11("Shell");
+	buf.addcss("css", null);
+	buf.insert("body", buf.el("h1", buf.text("Shell")));
+	
 	if((req.method() == "POST") && (cmd != null)) {
 	    String eo, ee;
 	    synchronized(cons) {
@@ -75,47 +72,40 @@ public class ShellPage extends SimpleWriter {
 		try {
 		    ip.set("req", req);
 		    resp = ip.eval(cmd);
-		    out.println("<pre>");
-		    out.println(Misc.htmlq((resp == null)?"(null)":(resp.toString())));
-		    out.println("</pre>");
+		    buf.insert("body", buf.el("pre", buf.text((resp == null)?"(null)":(resp.toString()))));
 		} catch(bsh.EvalError exc) {
-		    out.println("<h2>Evaluation error</h2>");
-		    out.println("<pre>");
-		    out.print(exc.toString());
-		    out.println("</pre>");
+		    buf.insert("body", buf.el("h2", buf.text("Evaluation error")));
+		    buf.insert("body", buf.el("pre", buf.text(exc.toString())));
 		    if(exc instanceof bsh.TargetError) {
 			bsh.TargetError te = (bsh.TargetError)exc;
-			out.println("<h3>Target error</h3>");
-			out.println("<pre>");
-			te.getTarget().printStackTrace(out);
-			out.println("</pre>");
+			buf.insert("body", buf.el("h3", buf.text("Target error")));
+			StringWriter sbuf = new StringWriter();
+			te.getTarget().printStackTrace(new PrintWriter(sbuf));
+			buf.insert("body", buf.el("pre", buf.text(sbuf.toString())));
 		    }
 		}
 		eo = new String(cons.obuf.toByteArray(), Misc.utf8);
 		ee = new String(cons.ebuf.toByteArray(), Misc.utf8);
 	    }
 	    if(eo.length() > 0) {
-		out.println("<h2>Output</h2>");
-		out.println("<pre>");
-		out.println(Misc.htmlq(eo));
-		out.println("</pre>");
+		buf.insert("body", buf.el("h2", buf.text("Output")));
+		buf.insert("body", buf.el("pre", buf.text(eo)));
 	    }
 	    if(ee.length() > 0) {
-		out.println("<h2>Errors</h2>");
-		out.println("<pre>");
-		out.println(Misc.htmlq(ee));
-		out.println("</pre>");
+		buf.insert("body", buf.el("h2", buf.text("Errors")));
+		buf.insert("body", buf.el("pre", buf.text(ee)));
 	    }
 	}
-	out.println("<form action=\"sh\" method=\"post\">");
-	out.println("<textarea cols=\"80\" rows=\"5\" name=\"cmd\">");
-	if(cmd != null)
-	    out.print(cmd);
-	out.println("</textarea>");
-	out.println("<input type=\"submit\" value=\"Evaluate\" />");
-	out.println("<input type=\"reset\" value=\"Reset\" />");
-	out.println("</form>");
-	out.println("</body>");
-	out.println("</html>");
+	
+	Element form;
+	buf.insert("body", buf.el("form", form = buf.el("p", null), "action=sh", "method=post"));
+	form.appendChild(buf.el("textarea", buf.text(cmd), "cols=80", "rows=5", "name=cmd"));
+	form.appendChild(buf.el("input", null, "type=submit", "value=Evaluate"));
+	form.appendChild(buf.el("input", null, "type=reset", "value=Reset"));
+	try {
+	    buf.output(req);
+	} catch(IOException e) {
+	    throw(new RuntimeException(e));
+	}
     }
 }

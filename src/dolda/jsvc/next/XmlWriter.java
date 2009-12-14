@@ -7,7 +7,7 @@ import dolda.jsvc.util.Misc;
 
 public class XmlWriter {
     private Map<String, String> nsnames = new HashMap<String, String>();
-    private Document doc;
+    public final Document doc;
     private int nsser = 1;
     
     public XmlWriter(Document doc) {
@@ -146,7 +146,7 @@ public class XmlWriter {
     }
     
     protected void text(ColumnWriter out, String s, int indent) throws IOException {
-	out.write(s);
+	out.write(Misc.htmlq(s));
     }
 
     protected void text(ColumnWriter out, Text txt, int indent) throws IOException {
@@ -176,12 +176,16 @@ public class XmlWriter {
 	}
     }
     
+    protected void doctype(ColumnWriter out, DocumentType dt) throws IOException {
+	out.write(String.format("<!DOCTYPE %s PUBLIC \"%s\" \"%s\">\n", dt.getName(), dt.getPublicId(), dt.getSystemId()));
+    }
+
     public void write(Writer out) throws IOException {
 	findallnsnames();
 	ColumnWriter col = new ColumnWriter(out);
 	DocumentType t = doc.getDoctype();
 	if(t != null)
-	    out.write(String.format("<!DOCTYPE %s PUBLIC \"%s\" \"%s\">\n", t.getName(), t.getPublicId(), t.getSystemId()));
+	    doctype(col, t);
 	node(col, doc.getDocumentElement(), 0);
     }
 

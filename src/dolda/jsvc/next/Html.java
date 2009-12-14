@@ -5,6 +5,8 @@ import org.w3c.dom.ls.*;
 import javax.xml.validation.*;
 import java.net.*;
 import java.io.*;
+import dolda.jsvc.*;
+import dolda.jsvc.util.*;
 
 public class Html extends DocBuffer {
     public static final String ns = "http://www.w3.org/1999/xhtml";
@@ -18,8 +20,8 @@ public class Html extends DocBuffer {
 	Html buf = new Html("-//W3C//DTD XHTML 1.1//EN", "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd");
 	Node html = buf.doc.getDocumentElement();
 	Node head = DomUtil.insertel(html, "head");
-	head.appendChild(buf.makecursor("head"));
 	Node tit = DomUtil.insertel(head, "title");
+	head.appendChild(buf.makecursor("head"));
 	DomUtil.inserttext(tit, title);
 	Node body = DomUtil.insertel(html, "body");
 	body.appendChild(buf.makecursor("body"));
@@ -52,5 +54,37 @@ public class Html extends DocBuffer {
 	    /* Should never happen. */
 	    throw(new Error(e));
 	}
+    }
+    
+    private static boolean asxhtml(Request req) {
+	String ah = req.inheaders().get("Accept");
+	AcceptMap ctmap = AcceptMap.parse((ah == null)?"":ah);
+	AcceptMap.Entry ha = ctmap.accepts("text/html");
+	AcceptMap.Entry xa = ctmap.accepts("text/xhtml+xml");
+	if(xa == null)
+	    xa = ctmap.accepts("application/xhtml+xml");
+	if((ha == null) && (xa == null))
+	    return(false);
+	else if((ha != null) && (xa == null))
+	    return(false);
+	else if((ha == null) && (xa != null))
+	    return(true);
+	if(xa.q < ha.q)
+	    return(false);
+	return(true);
+    }
+
+    public void output(Request req) throws IOException {
+	finalise();
+	validate();
+	XmlWriter w;
+	if(asxhtml(req)) {
+	    req.outheaders().put("Content-Type", "application/xhtml+xml");
+	    w = new XHtmlWriter(doc);
+	} else {
+	    req.outheaders().put("Content-Type", "text/html; charset=utf-8");
+	    w = new HtmlWriter(doc);
+	}
+	w.write(req.output());
     }
 }

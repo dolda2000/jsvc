@@ -46,7 +46,9 @@ public class DocBuffer {
 	Node c = cursor(cursor);
 	if(c == null)
 	    throw(new RuntimeException("No such cursor: `" + cursor + "'"));
-	c.getParentNode().insertBefore(doc.importNode(n, true), c);
+	if(n.getOwnerDocument() != doc)
+	    n = doc.importNode(n, true);
+	c.getParentNode().insertBefore(n, c);
     }
     
     public Element makecursor(String name) {
@@ -69,6 +71,8 @@ public class DocBuffer {
     }
     
     public Text text(String text) {
+	if(text == null)
+	    return(null);
 	return(doc.createTextNode(text));
     }
     
