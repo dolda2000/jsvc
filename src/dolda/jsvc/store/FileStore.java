@@ -238,13 +238,7 @@ class FileStore extends Store {
     public static void register() {
 	Store.register("file", new Factory() {
 		public Store create(String rootname, Package pkg) {
-		    java.io.File root = new java.io.File(rootname);
-		    ThreadContext ctx = ThreadContext.current();
-		    if(ctx != null) {
-			if(ctx.server().name() != null)
-			    root = new java.io.File(root, ctx.server().name());
-		    }
-		    return(new FileStore(pkg, root));
+		    return(new FileStore(pkg, new java.io.File(rootname)));
 		}
 	    });
     }
