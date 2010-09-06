@@ -17,7 +17,7 @@
     </target>
 
     <target name="jsvc" depends="build-env">
-      <javac srcdir="src" destdir="build/bin" debug="on">
+      <javac srcdir="src" destdir="build/bin" debug="on" includeantruntime="true">
 	<!-- <classpath refid="classpath" /> -->
         <compilerarg value="-Xlint:unchecked" />
       </javac>
