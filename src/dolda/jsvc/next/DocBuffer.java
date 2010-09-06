@@ -76,6 +76,18 @@ public class DocBuffer {
 	return(doc.createTextNode(text));
     }
     
+    public Node asnode(Object o) {
+	if(o instanceof Node) {
+	    Node n = (Node)o;
+	    if(n.getOwnerDocument() != doc)
+		return(doc.importNode(n, true));
+	    return(n);
+	}
+	if(o instanceof String)
+	    return(text((String)o));
+	throw(new RuntimeException("Cannot convert a " + o.getClass().getName() + " to a DOM node"));
+    }
+    
     public void finalise() {
 	Node n = doc;
 	while(true) {

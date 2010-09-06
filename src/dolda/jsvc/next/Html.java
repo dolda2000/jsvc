@@ -32,6 +32,19 @@ public class Html extends DocBuffer {
 	return(el(ns, name, contents, attrs));
     }
     
+    public Element table(Object... headers) {
+	Element tbl = el("table", null);
+	tbl.appendChild(tr(true, headers));
+	return(tbl);
+    }
+    
+    public Element tr(boolean head, Object... cells) {
+	Element tr = el("tr", null);
+	for(Object cell : cells)
+	    tr.appendChild(el(head?"th":"td", asnode(cell)));
+	return(tr);
+    }
+    
     public Element csslink(String href, String name) {
 	Element el = el("link", null, "rel=stylesheet", "type=text/css");
 	if(name != null)
