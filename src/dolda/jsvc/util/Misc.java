@@ -6,6 +6,7 @@ import java.io.*;
 
 public class Misc {
     public static final java.nio.charset.Charset utf8 = java.nio.charset.Charset.forName("UTF-8");
+    public static final java.nio.charset.Charset ascii = java.nio.charset.Charset.forName("US-ASCII");
     private static Map<Integer, String> stext = new HashMap<Integer, String>();
     
     static {

@@ -31,7 +31,7 @@ public abstract class ResponseBuffer implements ResettableRequest {
 	    throw(new IllegalStateException("Response has been flushed; header information cannot be modified"));
     }
     
-    private void flush() {
+    private void flush() throws IOException {
 	if(flushed)
 	    return;
 	if(respcode < 0) {
@@ -100,6 +100,6 @@ public abstract class ResponseBuffer implements ResettableRequest {
 	init();
     }
     
-    protected abstract void backflush();
+    protected abstract void backflush() throws IOException;
     protected abstract OutputStream realoutput();
 }

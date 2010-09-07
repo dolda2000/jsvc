@@ -137,7 +137,7 @@ public class ThreadContext extends ThreadGroup {
     }
     
     public RequestThread respond(Request req) {
-	return(new RequestThread(root, req, workers, "Worker thread " + reqs++));
+	return(ctx.worker(root, req, workers, "Worker thread " + reqs++));
     }
     
     private Responder bootstrap(final Class<?> bootclass) {
@@ -189,5 +189,32 @@ public class ThreadContext extends ThreadGroup {
 		return((ThreadContext)tg);
 	}
 	return(null);
+    }
+    
+    public static class CreateException extends Exception {
+	public CreateException(String message) {
+	    super(message);
+	}
+
+	public CreateException(String message, Throwable cause) {
+	    super(message, cause);
+	}
+    }
+
+    public static ThreadContext create(ServerContext ctx, ClassLoader cl) throws CreateException {
+	String nm = "JSvc Service";
+	if(ctx.name() != null)
+	    nm = "JSvc Service for " + ctx.name();
+	
+	String clnm = ctx.libconfig("jsvc.bootstrap", null);
+	if(clnm == null)
+	    throw(new CreateException("No JSvc bootstrapper specified"));
+	Class<?> bc;
+	try {
+	    bc = cl.loadClass(clnm);
+	} catch(ClassNotFoundException e) {
+	    throw(new CreateException("Invalid JSvc bootstrapper specified", e));
+	}
+	return(new ThreadContext(null, nm, ctx, bc));
     }
 }

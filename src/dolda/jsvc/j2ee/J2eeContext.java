@@ -43,4 +43,8 @@ public abstract class J2eeContext implements ServerContext {
     public ServletConfig j2eeconfig() {
 	return(sc);
     }
+    
+    public RequestThread worker(Responder root, Request req, ThreadGroup tg, String name) {
+	return(new RequestThread(root, req, tg, name));
+    }
 }
