@@ -3,6 +3,7 @@ package dolda.jsvc.scgi;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.*;
 import dolda.jsvc.*;
 import dolda.jsvc.util.*;
 import dolda.jsvc.j2ee.PosixArgs;
@@ -10,6 +11,7 @@ import dolda.jsvc.j2ee.PosixArgs;
 public class DirServer extends Server {
     private final Map<File, DSContext> contexts = new HashMap<File, DSContext>();
     private final File datroot;
+    private final Logger logger = Logger.getLogger("dolda.jsvc.scgi.dirserver");
     
     public DirServer(ServerSocket sk, File datroot) {
 	super(sk);
@@ -19,16 +21,19 @@ public class DirServer extends Server {
     private DSContext context(File file) throws ThreadContext.CreateException {
 	synchronized(contexts) {
 	    DSContext ctx = contexts.get(file);
+	    String act = "loaded %s as %s";
 	    if(ctx != null) {
 		if(ctx.mtime < file.lastModified()) {
 		    ctx.tg.destroy();
 		    contexts.remove(file);
 		    ctx = null;
+		    act = "reloaded %s as %s";
 		}
 	    }
 	    if(ctx == null) {
 		ctx = new DSContext(file, datroot);
 		contexts.put(file, ctx);
+		logger.config(String.format(act, file, ctx.name()));
 	    }
 	    return(ctx);
 	}
