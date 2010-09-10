@@ -10,12 +10,12 @@ import dolda.jsvc.j2ee.PosixArgs;
 
 public class DirServer extends Server {
     private final Map<File, DSContext> contexts = new HashMap<File, DSContext>();
-    private final File datroot;
+    private final Environment env;
     private final Logger logger = Logger.getLogger("dolda.jsvc.scgi.dirserver");
     
-    public DirServer(ServerSocket sk, File datroot) {
+    public DirServer(ServerSocket sk, Environment env) {
 	super(sk);
-	this.datroot = datroot;
+	this.env = env;
     }
 
     private DSContext context(File file) throws ThreadContext.CreateException {
@@ -31,7 +31,7 @@ public class DirServer extends Server {
 		}
 	    }
 	    if(ctx == null) {
-		ctx = new DSContext(file, datroot);
+		ctx = new DSContext(file, env);
 		contexts.put(file, ctx);
 		logger.config(String.format(act, file, ctx.name()));
 	    }
@@ -85,11 +85,8 @@ public class DirServer extends Server {
 	    usage(System.err);
 	    System.exit(1);
 	}
-	if(datroot == null) {
-	    datroot = new File(System.getProperty("user.home"), ".jsvc");
-	    if(!datroot.exists() || !datroot.isDirectory())
-		datroot = null;
-	}
+	Environment env = (datroot == null)?new Environment():new Environment(datroot);
+	env.initvm();
 	int port = Integer.parseInt(opt.rest[0]);
 	ServerSocket sk;
 	try {
@@ -99,7 +96,7 @@ public class DirServer extends Server {
 	    System.exit(1);
 	    return; /* Because javac is stupid. :-/ */
 	}
-	DirServer s = new DirServer(sk, datroot);
+	DirServer s = new DirServer(sk, env);
 	if(charset != null)
 	    s.headcs = charset;
 	

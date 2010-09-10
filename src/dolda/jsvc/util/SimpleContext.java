@@ -2,25 +2,14 @@ package dolda.jsvc.util;
 
 import java.io.*;
 import java.util.*;
-import java.net.*;
 import dolda.jsvc.*;
 
-public class JarContext implements ServerContext {
+public class SimpleContext implements ServerContext {
     private final long ctime;
     private final String name;
     public final ClassLoader loader;
     protected final Properties sysconfig, libconfig;
     
-    private static String mangle(File f) {
-	String ret = f.getName();
-	int p = ret.lastIndexOf('.');
-	if(p > 0)
-	    ret = ret.substring(0, p);
-	for(f = f.getParentFile(); f != null; f = f.getParentFile())
-	    ret = f.getName() + "/" + ret;
-	return(ret);
-    }
-
     private void loadconfig() {
 	try {
 	    InputStream pi = loader.getResourceAsStream("jsvc.properties");
@@ -36,20 +25,7 @@ public class JarContext implements ServerContext {
 	}
     }
 
-    public Class<?> findboot() {
-	String clnm = libconfig("jsvc.bootstrap", null);
-	if(clnm == null)
-	    return(null);
-	Class<?> bc;
-	try {
-	    bc = loader.loadClass(clnm);
-	} catch(ClassNotFoundException e) {
-	    return(null);
-	}
-	return(bc);
-    }
-
-    public JarContext(ClassLoader cl, String name) {
+    public SimpleContext(ClassLoader cl, String name) {
 	this.ctime = System.currentTimeMillis();
 	this.name = name;
 	this.loader = cl;
@@ -57,18 +33,6 @@ public class JarContext implements ServerContext {
 	libconfig = new Properties();
 	
 	loadconfig();
-    }
-    
-    private static URL makingmewanttokilljavac(File jar) {
-	try {
-	    return(jar.toURI().toURL());
-	} catch(MalformedURLException e) {
-	    throw(new RuntimeException(e));
-	}
-    }
-
-    public JarContext(File jar) {
-	this(new URLClassLoader(new URL[] {makingmewanttokilljavac(jar)}, JarContext.class.getClassLoader()), mangle(jar));
     }
     
     public long starttime() {

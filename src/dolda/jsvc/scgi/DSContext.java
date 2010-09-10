@@ -1,40 +1,47 @@
 package dolda.jsvc.scgi;
 
 import java.io.*;
+import java.net.*;
 import dolda.jsvc.*;
 import dolda.jsvc.util.*;
 
-public class DSContext extends JarContext {
+public class DSContext extends SimpleContext {
     public final long mtime;
-    private final File datroot;
     public final ThreadContext tg;
+    private final Environment env;
 
-    public DSContext(File jar, File datroot) throws ThreadContext.CreateException {
-	super(jar);
+    private static String mangle(File f) {
+	String ret = f.getName();
+	int p = ret.lastIndexOf('.');
+	if(p > 0)
+	    ret = ret.substring(0, p);
+	for(f = f.getParentFile(); f != null; f = f.getParentFile())
+	    ret = f.getName() + "/" + ret;
+	return(ret);
+    }
+
+    private static URL makingmewanttokilljavac(File jar) {
+	try {
+	    return(jar.toURI().toURL());
+	} catch(MalformedURLException e) {
+	    throw(new RuntimeException(e));
+	}
+    }
+
+    public DSContext(File jar, Environment env) throws ThreadContext.CreateException {
+	super(URLClassLoader.newInstance(new URL[] {makingmewanttokilljavac(jar)}, env.libloader()), mangle(jar));
 	this.mtime = jar.lastModified();
-	this.datroot = datroot;
+	this.env = env;
 	loadconfig();
 	this.tg = ThreadContext.create(this, loader);
     }
     
     private void loadconfig() {
-	if(datroot != null) {
-	    File sroot = new File(new File(datroot, "store"), name());
+	if(env.root != null) {
+	    File sroot = new File(new File(env.root, "store"), name());
 	    sysconfig.put("jsvc.storage", "file:" + sroot.getPath());
-	    File conf = new File(datroot, "jsvc.properties");
-	    if(conf.exists()) {
-		try {
-		    InputStream in = new FileInputStream(conf);
-		    try {
-			sysconfig.load(in);
-		    } finally {
-			in.close();
-		    }
-		} catch(IOException e) {
-		    throw(new RuntimeException(e));
-		}
-	    }
 	}
+	sysconfig.putAll(env.sysconfig);
     }
     
     public RequestThread worker(Responder root, Request req, ThreadGroup tg, String name) {
