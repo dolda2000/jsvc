@@ -55,9 +55,12 @@ public class ScgiRequest extends ResponseBuffer {
 	path = environ.get("PATH_INFO");
 	if(path == null)
 	    throw(new InvalidRequestException("Missing PATH_INFO"));
-	method = environ.get("REQUEST_METHOD");
-	if(method == null)
-	    throw(new InvalidRequestException("Missing REQUEST_METHOD"));
+	{
+	    String tmp = environ.get("REQUEST_METHOD");
+	    if(tmp == null)
+		throw(new InvalidRequestException("Missing REQUEST_METHOD"));
+	    method = tmp.toUpperCase().intern();
+	}
 	{
 	    /* Ewwww, this is disgusting! */
 	    String scheme = "http";
