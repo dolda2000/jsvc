@@ -24,7 +24,7 @@ public class DirServer extends Server {
 	    String act = "loaded %s as %s";
 	    if(ctx != null) {
 		if(ctx.mtime < file.lastModified()) {
-		    ctx.tg.destroy();
+		    ctx.tg.shutdown();
 		    contexts.remove(file);
 		    ctx = null;
 		    act = "reloaded %s as %s";
