@@ -12,6 +12,7 @@ public class DirServer extends Server {
     private final Map<File, DSContext> contexts = new HashMap<File, DSContext>();
     private final Environment env;
     private final Logger logger = Logger.getLogger("dolda.jsvc.scgi.dirserver");
+    private Thread sdhook = null, main = null;
     
     public DirServer(ServerSocket sk, Environment env) {
 	super(sk);
@@ -52,7 +53,21 @@ public class DirServer extends Server {
 	w.start();
     }
     
+    private class ShutdownHandler extends Thread {
+	public void run() {
+	    sdhook = null;
+	    DirServer.this.stop();
+	    try {
+		main.join();
+	    } catch(InterruptedException e) {}
+	}
+    }
+
     protected void shutdown() {
+	try {
+	    if(sdhook != null)
+		Runtime.getRuntime().removeShutdownHook(sdhook);
+	} catch(Exception e) {}
 	synchronized(contexts) {
 	    for(Iterator<Map.Entry<File, DSContext>> i = contexts.entrySet().iterator(); i.hasNext();) {
 		Map.Entry<File, DSContext> e = i.next();
@@ -61,6 +76,7 @@ public class DirServer extends Server {
 		ctx.tg.shutdown();
 	    }
 	}
+	super.shutdown();
     }
 
     private static void usage(PrintStream out) {
@@ -111,6 +127,8 @@ public class DirServer extends Server {
 	if(charset != null)
 	    s.headcs = charset;
 	
-	new Thread(s, "SCGI server thread").start();
+	Runtime.getRuntime().addShutdownHook(s.sdhook = s.new ShutdownHandler());
+	s.main = new Thread(s, "SCGI server thread");
+	s.main.start();
     }
 }
