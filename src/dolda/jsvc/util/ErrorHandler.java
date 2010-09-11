@@ -52,6 +52,11 @@ public class ErrorHandler implements Responder {
     }
     
     protected boolean debug(Request req, Throwable t) {
+	ThreadContext thc = ThreadContext.current();
+	if(thc != null) {
+	    if(Misc.boolval(thc.server().sysconfig("jsvc.debug-errors", "0")))
+		return(true);
+	}
 	SocketAddress rem = req.remoteaddr();
 	return((rem instanceof InetSocketAddress) && ((InetSocketAddress)rem).getAddress().isLoopbackAddress());
     }
