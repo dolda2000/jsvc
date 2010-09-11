@@ -51,6 +51,17 @@ public class DirServer extends Server {
 	RequestThread w = ctx.tg.respond(req);
 	w.start();
     }
+    
+    protected void shutdown() {
+	synchronized(contexts) {
+	    for(Iterator<Map.Entry<File, DSContext>> i = contexts.entrySet().iterator(); i.hasNext();) {
+		Map.Entry<File, DSContext> e = i.next();
+		DSContext ctx = e.getValue();
+		i.remove();
+		ctx.tg.shutdown();
+	    }
+	}
+    }
 
     private static void usage(PrintStream out) {
 	out.println("usage: dolda.jsvc.scgi.DirServer [-h] [-e CHARSET] [-d DATADIR] PORT");

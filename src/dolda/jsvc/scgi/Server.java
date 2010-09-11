@@ -8,6 +8,7 @@ import java.util.*;
 public abstract class Server implements Runnable {
     private final ServerSocket sk;
     private final Logger logger = Logger.getLogger("dolda.jsvc.scgi");
+    private boolean running = false;
     public String headcs = "UTF-8";
     
     public Server(ServerSocket sk) {
@@ -97,7 +98,12 @@ public abstract class Server implements Runnable {
     public void run() {
 	try {
 	    try {
-		while(true) {
+		synchronized(this) {
+		    if(running)
+			throw(new IllegalStateException("SCGI server is already running"));
+		    running = true;
+		}
+		while(running) {
 		    Socket nsk = sk.accept();
 		    serve(nsk);
 		}
@@ -105,7 +111,26 @@ public abstract class Server implements Runnable {
 		sk.close();
 	    }
 	} catch(IOException e) {
-	    logger.log(Level.SEVERE, "SCGI server encountered I/O error", e);
+	    if((e instanceof SocketException) && !running) {
+		/* Assume that stop() has closed the socket. */
+	    } else {
+		logger.log(Level.SEVERE, "SCGI server encountered I/O error", e);
+	    }
+	} finally {
+	    shutdown();
+	    running = false;
 	}
+    }
+    
+    public void stop() {
+	try {
+	    running = false;
+	    sk.close();
+	} catch(IOException e) {
+	    throw(new RuntimeException(e));
+	}
+    }
+    
+    protected void shutdown() {
     }
 }
