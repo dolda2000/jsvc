@@ -37,10 +37,6 @@ public class DSContext extends SimpleContext {
     }
     
     private void loadconfig() {
-	if(env.root != null) {
-	    File sroot = new File(new File(env.root, "store"), name());
-	    sysconfig.put("jsvc.storage", "file:" + sroot.getPath());
-	}
 	sysconfig.putAll(env.sysconfig);
     }
     
