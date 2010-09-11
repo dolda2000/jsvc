@@ -72,7 +72,10 @@ public class ThreadContext extends ThreadGroup {
 		if(st.st == "killed")
 		    logger.log(Level.WARNING, "Thread " + rt + " refused to die; killing again");
 		if(now - st.lastkill > 5000) {
-		    rt.stop();
+		    if(forcelimit)
+			rt.stop();
+		    else
+			rt.interrupt();
 		    st.st = "killed";
 		    st.lastkill = now;
 		} else {
