@@ -77,6 +77,8 @@ public class DocBuffer {
     }
     
     public Node asnode(Object o) {
+	if(o == null)
+	    return(text(""));
 	if(o instanceof Node) {
 	    Node n = (Node)o;
 	    if(n.getOwnerDocument() != doc)
