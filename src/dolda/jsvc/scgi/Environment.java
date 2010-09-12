@@ -27,8 +27,6 @@ public class Environment {
     }
     
     private void loadconfig() {
-	File sroot = new File(root, "store");
-	sysconfig.put("jsvc.storage", "file:" + sroot.getPath());
 	File conf = new File(root, "jsvc.properties");
 	if(conf.exists()) {
 	    try {
